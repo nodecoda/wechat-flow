@@ -69,6 +69,21 @@ writing_persona: "midnight-friend"
 
 每个人格定义了语气浓度、数据呈现方式、情绪弧线、不确定性表达模板等参数。详见 `personas/` 目录。
 
+## 写作域回路（Phase A-E）
+
+写作不只是"生成一段文字"——WeWrite 把写作过程建模为可核验、可回放、可调优的四段回路，每个环节都有工具与产物落盘在 `output/{slug}-*.yaml`：
+
+| 环节 | 产物 | 工具 | 作用 |
+|------|------|------|------|
+| **立意**（Step 2.5） | `{slug}-intent.yaml` | `toolkit/intent.py` | 选题后先立"要论证的判断"：四形态候选立意 → 三问校验（信息差/可信度/边界）→ 终审定型（`thesis` 非空、status 锁定） |
+| **素材溯源**（Step 3.3） | `{slug}-facts.yaml` | `toolkit/facts.py` | 把"禁止编造"落成可核对清单：采集的真实素材逐条核验为 verified/rejected；写作引用须命中 verified 条目 |
+| **编辑锚点**（Step 4.4） | 文内 `:::anchor` 块 | `toolkit/anchor.py` | 生成 2-3 个待你填写真实内容的锚点（经历/观点/故事/数据），发布前 `check` 确认已填写 |
+| **修改复检**（Step 5.4） | `{slug}-revision.yaml` | `toolkit/revision.py` | 四层修改（结构→段落→句子→措辞）+ 参数层建议；`recheck` 证明"改后更好"，`rollback` 防过度修改 |
+
+**参数层五层模型**（revision-guide.md §1.5）：修改按影响面从大到小分五层执行——结构层 → 段落层 → 句子层 → 措辞层 → 参数层。参数层把 `humanness_score` 的 8 个参数（`sentence_variance`/`paragraph_rhythm`/`emotional_arc`/`word_temperature_bias`/`broken_sentence_rate`/`tangent_frequency`/`style_drift`/`negative_emotion_floor`）低分项（<0.65）映射为"问题描述 + 可执行修改动作 + 示例"，形成**评分→修改→复检**闭环；迭代参数沉淀到 `writing-config.yaml`，越用越像你。
+
+回环验证：一次完整写作会依次产出 intent → facts → anchors → revision 四类产物，`evals/run_evals.py` 可对这套产物断言回归（`python3 evals/run_evals.py`）。
+
 ## 内容质量
 
 wechat-flow 的目标不是"骗过 AI 检测"，而是**写出值得读的文章**。核心机制：

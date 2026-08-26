@@ -3,13 +3,16 @@ name: Build OpenClaw Skill
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'SKILL.md'
       - 'references/**'
       - 'scripts/**'
       - 'toolkit/**'
       - 'personas/**'
+      - 'tests/**'
+      - 'evals/**'
+      - 'wewrite_common.py'
       - 'requirements.txt'
       - '*.example.yaml'
 
@@ -17,7 +20,23 @@ permissions:
   contents: write
 
 jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test deps
+        run: pip install pyyaml
+
+      - name: Run regression tests
+        run: python tests/run_all.py
+
   build:
+    needs: tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
