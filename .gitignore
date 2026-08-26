@@ -12,8 +12,8 @@ lessons/
 writing-config.yaml
 optimization-results.tsv
 
-# Generated output
-output/
+# Generated output (dir scaffold kept)
+output/*
 !output/.gitkeep
 
 # Exemplar library (user-specific content)
@@ -27,6 +27,7 @@ clients/
 .DS_Store
 
 # Python
+.pytest_cache/
 __pycache__/
 *.pyc
 *.pyo
@@ -42,3 +43,12 @@ CLAUDE.md
 # IDE
 .vscode/
 .idea/
+
+# Test tooling
+.coverage
+htmlcov/
+*.log
+
+# Virtualenv / local env
+.venv/
+.env

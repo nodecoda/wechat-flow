@@ -1,6 +1,6 @@
 # wechat-flow
 
-[![Build](https://github.com/nodecoda/wechat-flow/actions/workflows/build-openclaw.yml/badge.svg)](https://github.com/nodecoda/wechat-flow/actions/workflows/build-openclaw.yml)
+[![Build](https://github.com/nodecoda/wechat-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/nodecoda/wechat-flow/actions/workflows/ci.yml)
 
 面向公众号内容生产与自动发布的 Agent 工作流项目。
 
@@ -343,7 +343,7 @@ python3 evals/run_evals.py --slug my-post
 python3 evals/run_evals.py --eval 3 --json   # 只看写作域产物组，JSON 输出
 ```
 
-改动后请跑一遍 `tests/run_all.py` 再提交；CI（`build-openclaw.yml`）会在 master 分支自动跑测试并同步 `dist/openclaw/`。
+改动后请跑一遍 `tests/run_all.py` 再提交；CI（`ci.yml`）会在 master 分支自动跑测试并同步 `dist/openclaw/`。
 
 ## License
 
