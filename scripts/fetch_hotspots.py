@@ -18,6 +18,19 @@ from datetime import datetime, timezone, timedelta
 
 import requests
 
+
+def _ensure_utf8_stdio():
+    """Windows GBK 控制台无法打印中文/emoji，强制 stdout/stderr 走 UTF-8。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+
+_ensure_utf8_stdio()
+
+
 TIMEOUT = 10
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "

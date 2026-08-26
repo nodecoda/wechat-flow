@@ -24,6 +24,20 @@ from publisher import create_draft, create_image_post
 from wewrite_common import load_config
 
 
+
+def _ensure_utf8_stdio():
+    """Windows GBK 控制台无法打印中文，强制 stdout/stderr 走 UTF-8。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+
+_ensure_utf8_stdio()
+
+
+
 def cmd_preview(args):
     """Generate HTML preview and open in browser."""
     theme = load_theme(args.theme)

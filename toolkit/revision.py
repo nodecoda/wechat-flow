@@ -26,6 +26,14 @@ import re
 import sys
 from pathlib import Path
 
+DATE_PREFIX_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-")
+
+
+def _entity_stem(markdown_path) -> str:
+    """实体 key：去日期前缀的 slug（与 intent/facts 命名对齐）。"""
+    stem = Path(markdown_path).stem
+    return DATE_PREFIX_RE.sub("", stem)
+
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 if str(SKILL_ROOT) not in sys.path:
     sys.path.insert(0, str(SKILL_ROOT))
@@ -416,7 +424,7 @@ def analyze(markdown_path: str, intent_path: str | None = None, as_json: bool = 
     for f in findings:
         report["layers"][f["layer"]].append({k: v for k, v in f.items() if k != "layer"})
 
-    save_output_entity(Path(markdown_path).stem, "revision", report)
+    save_output_entity(_entity_stem(Path(markdown_path)), "revision", report)
 
     if as_json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -473,7 +481,7 @@ def apply(markdown_path: str, dry_run: bool = False) -> None:
 def recheck(markdown_path: str, as_json: bool = False) -> dict:
     path = Path(markdown_path)
     text = path.read_text(encoding="utf-8")
-    stem = path.stem
+    stem = _entity_stem(path)
 
     rep_path = output_entity_path(stem, "revision")
     report = load_output_entity(stem, "revision")

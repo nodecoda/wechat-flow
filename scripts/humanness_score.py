@@ -30,6 +30,19 @@ import sys
 from pathlib import Path
 
 
+def _ensure_utf8_stdio():
+    """Windows GBK 控制台无法打印中文/emoji，强制 stdout/stderr 走 UTF-8。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+
+_ensure_utf8_stdio()
+
+
+
 # ============================================================
 # Constants
 # ============================================================
@@ -356,7 +369,8 @@ _BELL_CURVE_CHECKS = {
     "self_correction": 0.20,
     "sentence_length_range": 0.71,
     "paragraph_length_variance": 0.52,
-    "banned_words": 0.73,
+    # 注意：banned_words 是硬规则（0 禁用词=满分），不参与钟形校准——
+    # 否则"完美"会被惩罚，出现"有禁用词反而更像人"的倒置。
 }
 
 

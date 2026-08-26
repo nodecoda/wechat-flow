@@ -26,6 +26,15 @@ import re
 import sys
 from pathlib import Path
 
+
+DATE_PREFIX_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-")
+
+
+def _entity_stem(markdown_path) -> str:
+    """实体 key：去日期前缀的 slug（与 intent/facts 命名对齐）。"""
+    stem = Path(markdown_path).stem
+    return DATE_PREFIX_RE.sub("", stem)
+
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 if str(SKILL_ROOT) not in sys.path:
     sys.path.insert(0, str(SKILL_ROOT))
@@ -42,6 +51,8 @@ ANCHOR_PROMPTS = {
 }
 
 ANCHOR_RE = re.compile(r":::anchor\s+(\w+)\n(.*?)\n:::", re.DOTALL)
+
+PLACEHOLDER_MARK = "在这里加一句你自己的话"  # generate 写入的占位提示，用户填写后应被替换
 
 
 def _ensure_utf8_stdio():
@@ -102,7 +113,7 @@ def generate_anchors(markdown_path: str, count: int = DEFAULT_COUNT, force: bool
     new_blocks, records = _insert_blocks(blocks, count)
     path.write_text("\n\n".join(new_blocks), encoding="utf-8")
 
-    record_path = save_output_entity(path.stem, "anchors", {"anchors": records})
+    record_path = save_output_entity(_entity_stem(path), "anchors", {"anchors": records})
     print(f"已插入 {len(records)} 个编辑锚点：{path}")
     for r in records:
         print(f"  {r['id']} [{r['type']}] {r['location']}")
@@ -119,38 +130,34 @@ def check_anchors(markdown_path: str, as_json: bool = False) -> bool:
     path = Path(markdown_path)
     text = path.read_text(encoding="utf-8")
 
-    unfilled = []
+    anchors = []
     for m in ANCHOR_RE.finditer(text):
-        unfilled.append({
+        content = m.group(2).strip()
+        is_placeholder = (not content) or PLACEHOLDER_MARK in content
+        anchors.append({
             "line": _line_number(text, m.start()),
             "type": m.group(1).strip().lower(),
-            "prompt": m.group(2).strip(),
+            "content": content,
+            "filled": not is_placeholder,
         })
-
-    total = None
-    record_path = output_entity_path(path.stem, "anchors")
-    if record_path.exists():
-        record = load_output_entity(path.stem, "anchors")
-        total = len(record.get("anchors", []))
-    remaining = len(unfilled)
-    filled = (total - remaining) if total is not None else None
+    unfilled = [a for a in anchors if not a["filled"]]
+    total = len(anchors)
+    filled = total - len(unfilled)
 
     if as_json:
         print(json.dumps(
-            {"total": total, "remaining": remaining, "filled": filled, "unfilled": unfilled},
+            {"total": total, "remaining": len(unfilled), "filled": filled, "unfilled": unfilled},
             ensure_ascii=False, indent=2,
         ))
     else:
-        if total is not None:
-            print(f"编辑锚点：total={total} filled={filled} remaining={remaining}")
-        else:
-            print(f"编辑锚点：remaining={remaining}（未找到锚点清单文件，无法计算 total）")
-        for u in unfilled:
-            print(f"  x line {u['line']:4d} [{u['type']}] {u['prompt']}")
-        if remaining == 0:
+        print(f"编辑锚点：total={total} filled={filled} remaining={len(unfilled)}")
+        for a in anchors:
+            mark = "x" if not a["filled"] else "✓"
+            print(f"  {mark} line {a['line']:4d} [{a['type']}] {a['content'][:40]}")
+        if not unfilled:
             print("✓ 所有编辑锚点均已填写（或文章不含锚点）。")
 
-    return remaining == 0
+    return not unfilled
 
 
 def main():

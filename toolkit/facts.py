@@ -293,7 +293,7 @@ def check_references(draft: Path, facts_path: Path | None = None, as_json: bool 
     text = draft.read_text(encoding="utf-8")
     signals = _claim_windows(text)
 
-    traced, missing, pending_hits, rejected_hits = [], [], [], []
+    traced, missing, pending_hits, rejected_hits, repeated = [], [], [], [], []
     for sig in signals:
         best_score, best_item = 0.0, None
         for item in items:
@@ -322,12 +322,25 @@ def check_references(draft: Path, facts_path: Path | None = None, as_json: bool 
             entry["claim"] = str(best_item.get("claim", ""))
             pending_hits.append(entry)
 
+    # 指代复述判定：未命中条目的信号若与已溯源信号的 match 完全相同，
+    # 视为对已溯源事实的重复引用（如「70.5% 那个数字」），不报未溯源。
+    traced_matches = {e["match"] for e in traced}
+    still_missing = []
+    for e in missing:
+        if e["match"] in traced_matches:
+            e["status"] = "repeated"
+            repeated.append(e)
+        else:
+            still_missing.append(e)
+    missing = still_missing
+
     report = {
         "status": "ok" if not (missing or pending_hits or rejected_hits) else "issues",
         "facts_path": str(fp),
         "draft": str(draft),
         "signals": len(signals),
         "traced": traced,
+        "repeated": repeated,
         "missing": missing,
         "pending_hits": pending_hits,
         "rejected_hits": rejected_hits,
@@ -356,6 +369,10 @@ def _print_report(report: dict) -> None:
         print(f"\n⛔ 命中已拒绝条目 {len(report['rejected_hits'])} 处——禁止引用，请改写或删除：")
         for e in report["rejected_hits"]:
             print(f"  - line {e['line']} 「{e['context']}」→ rejected 条目「{e['claim']}」")
+    if report["repeated"]:
+        print(f"\n↻ 已溯源数字的重复引用 {len(report['repeated'])} 处（无需处理）：")
+        for e in report["repeated"]:
+            print(f"  - line {e['line']} 「{e['context']}」")
     if report["missing"]:
         print(f"\n⚠️ 疑似未溯源 {len(report['missing'])} 处：")
         for e in report["missing"]:
