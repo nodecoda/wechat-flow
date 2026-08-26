@@ -82,7 +82,9 @@ writing_persona: "midnight-friend"
 | **编辑锚点**（Step 4.4） | `{slug}-anchors.yaml` + 文内 `:::anchor` 块 | `toolkit/anchor.py` | 生成 2-3 个待你填写真实内容的锚点（经历/观点/故事/数据），幂等落盘，发布前 `check` 确认已填写 |
 | **修改复检**（Step 5.4） | `{slug}-revision.yaml` | `toolkit/revision.py` | 四层修改（结构→段落→句子→措辞）+ 参数层建议；`recheck` 证明"改后更好"，`rollback` 防过度修改 |
 
-**参数层五层模型**（revision-guide.md §1.5）：修改按影响面从大到小分五层执行——结构层 → 段落层 → 句子层 → 措辞层 → 参数层。参数层把 `humanness_score` 的 8 个检测参数（`sentence_variance`/`paragraph_rhythm`/`emotional_arc`/`word_temperature_bias`/`broken_sentence_rate`/`real_data_density`/`self_correction_rate`/`adverb_max_per_100`）低分项（<0.65）映射为"问题描述 + 可执行修改动作 + 示例"，形成**评分→修改→复检**闭环；迭代参数沉淀到 `writing-config.yaml`，越用越像你。
+**参数层五层模型**（revision-guide.md §1.5）：修改按影响面从大到小分五层执行——结构层 → 段落层 → 句子层 → 措辞层 → 参数层。
+
+参数层把 `humanness_score` 的 8 个检测参数（`sentence_variance`、`paragraph_rhythm`、`emotional_arc`、`word_temperature_bias`、`broken_sentence_rate`、`real_data_density`、`self_correction_rate`、`adverb_max_per_100`）低分项（<0.65）映射为「问题描述 + 可执行修改动作 + 示例」，形成 **评分→修改→复检** 闭环；迭代参数沉淀到 `writing-config.yaml`，越用越像你。
 
 回环验证：一次完整写作会依次产出 intent → facts → anchors → revision 四类产物，`evals/run_evals.py` 可对这套产物断言回归（`python3 evals/run_evals.py`）。
 
@@ -154,14 +156,14 @@ python3 toolkit/cli.py themes
 
 ## 安装
 
-**Claude Code**：
+### Claude Code
 
 ```bash
 git clone --depth 1 https://github.com/nodecoda/wechat-flow.git ~/.claude/skills/wechat-flow
 cd ~/.claude/skills/wechat-flow && pip install -r requirements.txt
 ```
 
-**OpenClaw**：
+### OpenClaw
 
 ```bash
 git clone --depth 1 https://github.com/nodecoda/wechat-flow.git ~/.openclaw/skills/wechat-flow
@@ -170,7 +172,9 @@ cd ~/.openclaw/skills/wechat-flow && pip install -r requirements.txt
 
 安装后 skill 会在每次运行时自动检查新版本。有更新时说“更新”即可更新。
 
-**依赖分级安装**（按需选择，均从项目根目录执行）：
+### 依赖分级安装
+
+按需选择，均从项目根目录执行：
 
 ```bash
 # 完整写作管线（推荐）：markdown 排版 / 生图 / 发布全功能
@@ -198,81 +202,81 @@ cp config.example.yaml config.yaml
 你：写一篇关于 AI Agent 的公众号文章
 你：交互模式，写一篇关于效率工具的推文
 你：帮我润色一下刚才那篇
-你：学习我的修改                  → 飞轮学习
-你：看看有什么主题                → 主题画廊
-你：换成 sspai 主题               → 切换主题
-你：看看文章数据怎么样            → 效果复盘
-你：做一个小绿书                  → 图片帖（横滑轮播）
-你：检查一下                        → 生成报告 + 质量自检
-你：导入范文                        → 建立风格库
-你：查看范文库                      → 查看已导入的范文
-你：学习排版                        → 从公众号文章提取排版主题
+你：学习我的修改         → 飞轮学习
+你：看看有什么主题       → 主题画廊
+你：换成 sspai 主题      → 切换主题
+你：看看文章数据怎么样   → 效果复盘
+你：做一个小绿书         → 图片帖（横滑轮播）
+你：检查一下             → 生成报告 + 质量自检
+你：导入范文             → 建立风格库
+你：查看范文库           → 查看已导入的范文
+你：学习排版             → 从公众号文章提取排版主题
 ```
 
 ## 目录结构
 
 ```
 wechat-flow/
-├── SKILL.md                  # 主管道（Step 1-8）
-├── config.example.yaml       # API 配置模板
-├── style.example.yaml        # 风格配置模板
-├── writing-config.example.yaml # 写作参数模板
-├── wewrite_common.py          # 共享模块（config/history/写作域实体/UTF-8）
-├── VERSION                    # 版本号（Step 1.2 更新检查用）
-├── requirements.txt           # 完整写作管线（排版/生图/发布）
-├── requirements-min.txt       # 最小核心（pyyaml + requests）
-├── requirements-browser.txt   # 可选浏览器降级抓取
-├── pyproject.toml             # 元数据（requires-python >= 3.11）
+├── SKILL.md                     # 主管道（Step 1-8）
+├── config.example.yaml          # API 配置模板
+├── style.example.yaml           # 风格配置模板
+├── writing-config.example.yaml  # 写作参数模板
+├── wewrite_common.py            # 共享模块（config/history/写作域实体/UTF-8）
+├── VERSION                      # 版本号（Step 1.2 更新检查用）
+├── requirements.txt             # 完整写作管线（排版/生图/发布）
+├── requirements-min.txt         # 最小核心（pyyaml + requests）
+├── requirements-browser.txt     # 可选浏览器降级抓取
+├── pyproject.toml               # 元数据（requires-python >= 3.11）
 │
-├── dist/openclaw/            # OpenClaw 兼容版（CI 自动构建）
-├── tests/                     # 回归测试（facts/anchor/intent/revision/humanness/param）
-├── evals/                     # 写作域产物断言（evals.json + run_evals.py）
+├── dist/openclaw/               # OpenClaw 兼容版（CI 自动构建）
+├── tests/                       # 回归测试（facts/anchor/intent/revision/humanness/param）
+├── evals/                       # 写作域产物断言（evals.json + run_evals.py）
 │
-├── scripts/                  # 数据采集 + 诊断 + 构建
-│   ├── fetch_hotspots.py       # 多平台热点抓取
-│   ├── seo_keywords.py         # SEO 关键词分析
-│   ├── fetch_stats.py          # 微信文章数据回填
-│   ├── build_playbook.py       # 从历史文章生成 Playbook
-│   ├── learn_edits.py          # 学习人工修改
-│   ├── humanness_score.py      # 文章质量打分（8 检测参数 + 综合分，供自检和 Step 5 使用）
-│   ├── extract_exemplar.py      # 范文风格提取（few-shot 建库）
-│   ├── learn_theme.py           # 从公众号文章 URL 提取排版主题
-│   ├── fetch_article.py         # 从公众号 URL 提取正文为 Markdown
-│   ├── diagnose.py             # 配置完备度检查
-│   └── build_openclaw.py       # SKILL.md → OpenClaw 格式转换
+├── scripts/                     # 数据采集 + 诊断 + 构建
+│   ├── fetch_hotspots.py      # 多平台热点抓取
+│   ├── seo_keywords.py        # SEO 关键词分析
+│   ├── fetch_stats.py         # 微信文章数据回填
+│   ├── build_playbook.py      # 从历史文章生成 Playbook
+│   ├── learn_edits.py         # 学习人工修改
+│   ├── humanness_score.py     # 文章质量打分（8 检测参数 + 综合分，供自检和 Step 5 使用）
+│   ├── extract_exemplar.py    # 范文风格提取（few-shot 建库）
+│   ├── learn_theme.py         # 从公众号文章 URL 提取排版主题
+│   ├── fetch_article.py       # 从公众号 URL 提取正文为 Markdown
+│   ├── diagnose.py            # 配置完备度检查
+│   └── build_openclaw.py      # SKILL.md → OpenClaw 格式转换
 │
-├── toolkit/                  # Markdown → 微信工具链
-│   ├── cli.py                  # CLI（preview / publish / gallery / themes / image-post / learn-theme）
-│   ├── converter.py            # Markdown → 内联样式 HTML + 微信兼容修复
-│   ├── theme.py                # YAML 主题引擎
-│   ├── publisher.py            # 微信草稿箱 API + 小绿书图片帖
-│   ├── wechat_api.py           # access_token / 图片上传
-│   ├── image_gen.py            # AI 图片生成（9 provider，自动 fallback）
-│   └── themes/                 # 16+ 排版主题（含暗黑模式，可从文章学习新增）
+├── toolkit/                     # Markdown → 微信工具链
+│   ├── cli.py                 # CLI（preview / publish / gallery / themes / image-post / learn-theme）
+│   ├── converter.py           # Markdown → 内联样式 HTML + 微信兼容修复
+│   ├── theme.py               # YAML 主题引擎
+│   ├── publisher.py           # 微信草稿箱 API + 小绿书图片帖
+│   ├── wechat_api.py          # access_token / 图片上传
+│   ├── image_gen.py           # AI 图片生成（9 provider，自动 fallback）
+│   └── themes/                # 16+ 排版主题（含暗黑模式，可从文章学习新增）
 │
-├── personas/                 # 5 套写作人格预设（含朱雀实测数据）
+├── personas/                    # 5 套写作人格预设（含朱雀实测数据）
 │
-├── references/               # Agent 按需加载
-│   ├── writing-guide.md        # 写作规范 + 质量检查规则
-│   ├── frameworks.md           # 7 种写作框架（痛点/故事/清单/对比/热点解读/纯观点/复盘）
+├── references/                  # Agent 按需加载
+│   ├── writing-guide.md       # 写作规范 + 质量检查规则
+│   ├── frameworks.md          # 7 种写作框架（痛点/故事/清单/对比/热点解读/纯观点/复盘）
 │   ├── content-enhance.md     # 内容增强策略（角度发现/密度强化/细节锚定/真实体感）
-│   ├── topic-selection.md      # 选题评估规则
-│   ├── seo-rules.md            # 微信 SEO 规则
-│   ├── visual-prompts.md       # 视觉 AI 提示词规范
-│   ├── wechat-constraints.md   # 微信平台限制 + 自动修复
-│   ├── style-template.md       # 风格配置字段 + 16 主题列表
-│   ├── exemplar-seeds.yaml     # 通用人类写作模式种子（无范文库时的 fallback）
-│   ├── exemplars/              # 用户范文风格库（自动生成，不入 git）
-│   ├── intent-cards.md         # 立意卡规范（四形态 + 三问校验）
-│   ├── revision-guide.md        # 五层修改模型（含参数层）
-│   ├── operations.md            # 运维细节（错误表/history schema/范本注入/自检报告）
-│   ├── onboard.md              # 首次设置流程
-│   ├── learn-edits.md          # 学习飞轮流程
-│   └── effect-review.md        # 效果复盘流程
+│   ├── topic-selection.md     # 选题评估规则
+│   ├── seo-rules.md           # 微信 SEO 规则
+│   ├── visual-prompts.md      # 视觉 AI 提示词规范
+│   ├── wechat-constraints.md  # 微信平台限制 + 自动修复
+│   ├── style-template.md      # 风格配置字段 + 16 主题列表
+│   ├── exemplar-seeds.yaml    # 通用人类写作模式种子（无范文库时的 fallback）
+│   ├── exemplars/             # 用户范文风格库（自动生成，不入 git）
+│   ├── intent-cards.md        # 立意卡规范（四形态 + 三问校验）
+│   ├── revision-guide.md      # 五层修改模型（含参数层）
+│   ├── operations.md          # 运维细节（错误表/history schema/范本注入/自检报告）
+│   ├── onboard.md             # 首次设置流程
+│   ├── learn-edits.md         # 学习飞轮流程
+│   └── effect-review.md       # 效果复盘流程
 │
-├── output/                   # 生成的文章
-├── corpus/                   # 历史语料（可选）
-└── lessons/                  # 修改记录（自动生成）
+├── output/                      # 生成的文章
+├── corpus/                      # 历史语料（可选）
+└── lessons/                     # 修改记录（自动生成）
 ```
 
 运行时自动生成（不入 git）：`style.yaml`、`history.yaml`、`playbook.md`、`writing-config.yaml`、`references/exemplars/*.md`
