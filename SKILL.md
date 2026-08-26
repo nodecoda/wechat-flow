@@ -49,7 +49,7 @@ allowed-tools:
   - **本地修改**（默认）：用户在 `output/` 的 markdown 文件中修改
   - **微信草稿箱同步**：`python3 {skill_dir}/scripts/learn_edits.py --from-wechat`，自动从草稿箱拉回最新内容，与本地原文做纯文本 diff
 - 用户说"学习排版"/"学排版" → `python3 {skill_dir}/scripts/learn_theme.py <url> --name <name>`，用户需提供一个公众号文章 URL 和主题名称。提取完成后提示用户设置 `style.yaml` 的 `theme` 字段。
-- 用户说"学习这篇文章"/"导入范文" + URL → `python3 {skill_dir}/scripts/fetch_article.py <url> -o /tmp/article.md && python3 {skill_dir}/scripts/extract_exemplar.py /tmp/article.md -s <账号名>`，从公众号文章 URL 提取正文并导入范文库。支持四级降级（requests → Camoufox → Playwright → 手动 HTML）。
+- 用户说"学习这篇文章"/"导入范文" + URL → `python3 {skill_dir}/scripts/fetch_article.py <url> -o {skill_dir}/output/_fetch_tmp.md && python3 {skill_dir}/scripts/extract_exemplar.py {skill_dir}/output/_fetch_tmp.md -s <账号名>`，从公众号文章 URL 提取正文并导入范文库。支持四级降级（requests → Camoufox → Playwright → 手动 HTML）。
 - 用户说"看看文章数据" → `读取: {skill_dir}/references/effect-review.md`
 - 用户说"检查一下"/"自检"/"这篇文章怎么样" → 生成报告（生成档案 + 质量检查，≤5 条可操作建议）。完整步骤 → `{skill_dir}/references/operations.md#自检报告生成辅助功能`
 - 用户说"更新"/"更新 WeWrite"/"升级" → 在 `{skill_dir}` 执行 `git pull origin master`，完成后告知版本变化
@@ -58,7 +58,6 @@ allowed-tools:
 
 ## 主管道（Step 1-8）
 
-主管道启动时，创建以下 8 个任务用于进度追踪：
 主管道启动时，用 TaskCreate 为 8 个 Step 建任务：环境配置 / 选题 / 框架+素材 / 写作 / SEO+验证 / 视觉 AI / 排版发布 / 收尾。每开始一个 Step → `in_progress`，完成 → `completed`。
 ---
 
@@ -81,7 +80,7 @@ python3 -c "import markdown, bs4, cssutils, requests, yaml, pygments, PIL" 2>&1
 cd {skill_dir} && git fetch origin master --quiet 2>/dev/null
 ```
 
-比对本地 `{skill_dir}/VERSION` 与远程 `git show origin/main:VERSION`：
+比对本地 `{skill_dir}/VERSION` 与远程 `git show origin/master:VERSION`：
 - 相同 → 静默通过
 - 不同 → 提示用户："WeWrite 有新版本可用（当前 X → 最新 Y），说「更新」即可升级。"**不阻断流程**，继续 1.3
 - git 不可用（无 .git 目录或 fetch 失败）→ 静默跳过
@@ -284,7 +283,7 @@ python3 {skill_dir}/toolkit/cli.py preview {markdown} --theme {theme} --no-open 
 
 ### Step 8: 收尾
 
-**8.1 写入历史**（推送成功或降级都要写，文件不存在则创建）：向 `{skill_dir}/history.yaml` 追加一条记录。必填：`date/title/output_file/framework/word_count/media_id/writing_persona/closing_type`；写作域字段（`intent/fact_sheet/anchors/revision/stats`）完整 schema → `{skill_dir}/references/operations.md#history-yaml-schema-step-81`
+**8.1 写入历史**（推送成功或降级都要写，文件不存在则创建）：向 `{skill_dir}/history.yaml` 追加一条记录。必填：`date/title/output_file/framework/word_count/media_id/writing_persona/closing_type`；写作域字段（`intent/fact_sheet/anchors/revision/stats`）完整 schema → `{skill_dir}/references/operations.md#historyyaml-schemastep-81`
 **8.2 回复用户**：
 
 - 最终标题 + 2 备选 + 摘要 + 5 标签 + media_id
@@ -297,5 +296,3 @@ python3 {skill_dir}/toolkit/cli.py preview {markdown} --theme {theme} --no-open 
 
 各 Step 内联降级行 + 完整降级总表 → `{skill_dir}/references/operations.md#错误处理--降级总表`
 
----
-| Playbook 不存在 | 用 writing-guide.md |

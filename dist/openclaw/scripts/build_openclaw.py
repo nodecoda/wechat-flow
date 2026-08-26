@@ -104,7 +104,7 @@ def build(output_dir: Path):
 
     out_skill = output_dir / "SKILL.md"
     output_dir.mkdir(parents=True, exist_ok=True)
-    out_skill.write_text(f"---\n{fm}\n---{body}", encoding="utf-8")
+    out_skill.write_text(f"---\n{fm}\n---{body}", encoding="utf-8", newline="\n")
     print(f"  SKILL.md → {out_skill}")
 
     # Copy supporting directories
