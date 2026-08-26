@@ -177,6 +177,34 @@ python3 {skill_dir}/scripts/seo_keywords.py --json {关键词}
 - 自动模式 → 选最高分
 - 交互模式 → 展示全部，等用户选
 
+**2.5 立意**（选题后、框架前——先有要论证的判断，才有论证的结构）：
+
+```
+读取: {skill_dir}/references/intent-cards.md
+```
+
+**人机协作**：观点是人格与判断力的所在，机器给候选/做校验，终审留给人。
+
+1. **脚手架**：
+   ```bash
+   python3 {skill_dir}/toolkit/intent.py scaffold {slug} --topic "{选题}" [--facts output/{slug}-facts.yaml]
+   ```
+   → 生成 `output/{slug}-intent.yaml`；有 FactSheet 时预填已核实证据。
+2. **候选立意**（Agent）：按 intent-cards.md 的四形态（反转/升维/预测/筛选）生成 3-5 个候选判断句，写入 `thesis_candidates`。
+3. **检验三问（机器可判部分）**：
+   ```bash
+   python3 {skill_dir}/toolkit/intent.py validate output/{slug}-intent.yaml
+   ```
+   信息差（from≠to）/ 可信度（evidence 非空）/ 边界（boundary 非空）/ 黑名单（命中即淘汰）。不过 → 回第 2 步重写对应项。
+4. **终审**：
+   - 交互模式 → 展示候选，用户选定或改写
+   - 全自动 → Agent 选最尖锐且有支撑的候选
+   选中的判断句写入 `thesis`，填 `info_gap`、`boundary`。
+5. **标题候选**：`python3 {skill_dir}/toolkit/intent.py titles output/{slug}-intent.yaml`（规则模板，Step 5 按 SEO 规则打磨）。
+6. **定型**：`python3 {skill_dir}/toolkit/intent.py lock output/{slug}-intent.yaml`
+
+**降级**：intent.py 缺失 → 回退 content-enhance.md 角度发现（LLM 直出，不落盘）；全自动模式跳过终审直接进入 Step 3。
+
 ---
 
 ### Step 3: 框架 + 素材
@@ -188,6 +216,8 @@ python3 {skill_dir}/scripts/seo_keywords.py --json {关键词}
 ```
 
 7 套框架（痛点/故事/清单/对比/热点解读/纯观点/复盘），自动选推荐指数最高的。
+
+**如果 Step 2.5 生成了 IntentCard**（`output/{slug}-intent.yaml`）：把 `thesis` 传入框架选择——框架是立意的论证结构，`thesis` 须贯穿每个 H2（与 content-enhance 的"论点贯穿全文"一致）。
 
 **3.2 素材采集 + 内容增强**（合并执行，共用搜索结果）：
 
@@ -211,6 +241,19 @@ python3 {skill_dir}/scripts/seo_keywords.py --json {关键词}
 两者并入框架大纲，一起传入 Step 4 写作。
 
 **降级**：WebSearch 不可用 → 用 LLM 训练数据中可验证的公开信息。但需告知用户："素材采集未能使用 WebSearch，建议在编辑锚点处多加入你自己的内容。"密度强化不依赖搜索，始终执行。
+
+**3.3 建溯源表**（素材采集完成后执行，把"禁止编造"落成可核对的清单）：
+
+```bash
+python3 {skill_dir}/toolkit/facts.py init {slug} --item "声明|来源URL|来源名" --item "..."
+```
+
+- 把 3.2 采集的每条真实素材登记为一条 item（初始 `pending`）。
+- 逐条核实后流转状态：`python3 {skill_dir}/toolkit/facts.py verify {slug} --index N --status verified|rejected`
+  （核实要点：来源可访问、权威性、数据与原文一致）。
+- **rejected 条目写作时禁止引用**；verified 条目是可放心引用的数据源。
+- 汇总查看：`python3 {skill_dir}/toolkit/facts.py status {slug}`
+- **降级**：facts.py 缺失 → 跳过建表，写作时凭素材列表自我约束（不强制）。
 
 ---
 
@@ -298,14 +341,16 @@ Category 映射规则：
 - **写作人格**：按 4.2 加载的人格参数写作（数据呈现方式、个人声音浓度、不确定性表达等）
 - **收尾方式**：persona 的 `closing_tendency` 仅作为倾向参考。根据文章内容和情绪弧线自行判断最自然的收尾方式。如果 history.yaml 中最近 3 篇有 `closing_type` 字段，避免使用相同的收尾类型
 - **写作规范**：writing-guide.md 中的基础规则（禁用词、句长方差、词汇混用等）在初稿阶段生效
-- 2-3 个编辑锚点：`<!-- ✏️ 编辑建议：在这里加一句你自己的经历/看法 -->`
+- 2-3 个编辑锚点：`:::anchor {type}` 块（type: experience/opinion/story/data）。
+  可用 `python3 {skill_dir}/toolkit/anchor.py generate {output} --count 2` 自动生成；
+  发布前用 `python3 {skill_dir}/toolkit/anchor.py check {output}` 确认已填写（未填写的锚点会显示为虚线提示框）。
 - 可选容器语法：`:::dialogue`、`:::timeline`、`:::callout`、`:::quote`
 
 保存到 `{skill_dir}/output/{date}-{slug}.md`
 
 **4.5 快速自检**（写完后立即执行，减少 Step 5 重写概率）：
 
-对初稿做 5 项快速扫描，**当场修复**，不留到 Step 5：
+对初稿做 6 项快速扫描，**当场修复**，不留到 Step 5：
 
 **写作层面**：
 1. **禁用词扫描**：检查 writing-guide.md 2.1 的禁用词列表，命中的直接替换
@@ -315,8 +360,11 @@ Category 映射规则：
 3. **开头钩子**：前 3 句是否制造了悬念/冲突/好奇心？如果是平铺直叙的背景介绍，重写开头
 4. **增强贯穿**：增强策略的核心输出是否只出现在一段？如果是，在其他 H2 中补充
 5. **金句检查**：全文是否有至少 1 句可独立截图转发的句子？如果没有，在情绪高点处补一句
+6. **事实溯源**（有 FactSheet 时）：`python3 {skill_dir}/toolkit/facts.py check-refs {skill_dir}/output/{date}-{slug}.md`
+   文中数字/日期/具名来源须命中 FactSheet 的 verified 条目；未命中的改写为模糊表达或删除，或回到 Step 3.3 补登记核实。
+   **降级**：无 FactSheet 或模块缺失 → 跳过，不阻断。
 
-LLM 自行完成，不需要调用脚本。
+第 1-5 项 LLM 自行完成，不需要调用脚本；第 6 项按需调用。
 
 ---
 
@@ -369,6 +417,32 @@ python3 {skill_dir}/scripts/humanness_score.py {article_path} --json --tier3 {ag
 - 30-50 → 查看 `param_scores` 中最低分的 1-2 项，只修复对应的具体句子（不重写整段），改完重新打分。1 轮即可
 - \> 50 → 取 `param_scores` 最低的 2-3 项，逐项定向修复（每项只改最相关的 1-2 处），最多 2 轮。仍 > 50 则标记 DONE_WITH_CONCERNS 继续
 
+**5.4 修改执行 + 改后复检**（交互模式、用户说"修改/改一下/润色"，或 5.3 两轮修复仍不通过时触发；全自动且 5.3 通过则跳过）：
+
+```
+读取: {skill_dir}/references/revision-guide.md
+```
+
+四层修改（从大到小，避免白改）：
+
+1. **结构层**：`python3 {skill_dir}/toolkit/revision.py analyze {article_path} --intent {intent_path}` 的 structure 报告 → 人机协作：删/调/重组
+2. **段落层**：paragraph 报告 → 人机协作：改/并/拆
+3. **句子层**：sentence 报告 → 半自动：LLM 重写候选 + 用户接受/拒绝（diff 视图）
+4. **措辞层**：`python3 {skill_dir}/toolkit/revision.py apply {article_path}` 一键自动执行（空话/全角数字/重复标点/重复行）
+
+复检（证明修改让文章变好——只改不改不叫修改）：
+
+```bash
+python3 {skill_dir}/toolkit/revision.py recheck {article_path}
+```
+
+- after 较 baseline 明显劣化（Δ > 5）→ `python3 {skill_dir}/toolkit/revision.py rollback {article_path}`（防过度修改）
+- 复检通过 → 继续 Step 6
+
+停止条件：无结构问题 + 无重复 + 有金句 + 复检不劣化
+
+**降级**：revision.py 不存在（老安装）→ 按 revision-guide.md 人工执行四层检查，用 humanness_score 复检。
+
 ---
 
 ### Step 6: 视觉 AI
@@ -406,6 +480,7 @@ python3 {skill_dir}/scripts/humanness_score.py {article_path} --json --tier3 {ag
 | 封面图 | 推送模式下需要 | 无封面则警告，仍可推送（微信会显示默认封面） |
 | 正文字数 | ≥ 200 字 | 警告"内容过短，微信可能不收录" |
 | 图片数量 | ≤ 10 张 | 超出则移除末尾多余图片 |
+| 编辑锚点 | 无未填写的 :::anchor 块 | 警告"存在未填写的编辑锚点，建议补充个人内容后发布" |
 
 预检全部通过后才进入排版。
 
@@ -458,6 +533,17 @@ python3 {skill_dir}/toolkit/cli.py preview {markdown} --theme {theme} --no-open 
     tangent_frequency: "{值}"
     style_drift: {值}
     negative_emotion_floor: {值}
+  intent:                     # 立意卡摘要（Phase A 契约；Phase C 启用）
+    thesis: "{核心判断}"
+    angle: "{反转/升维/预测/筛选}"
+    status: "user_confirmed"
+  fact_sheet: "output/{slug}-facts.yaml"  # 素材溯源文件（Phase A 契约；Phase D 启用）
+  anchors:                    # 编辑锚点统计（toolkit/anchor.py）
+    total: {总数}
+    filled: {已填写数}
+  revision:                   # 修改报告（Phase A 契约；Phase B 启用）
+    baseline: null
+    after: null
   stats: null
 ```
 
@@ -503,4 +589,8 @@ python3 {skill_dir}/toolkit/cli.py preview {markdown} --theme {theme} --no-open 
 | 推送失败 | 本地 HTML |
 | 历史写入 | 警告不阻断 |
 | 效果数据 | 告知等 24h |
+| 立意脚手架（Step 2.5） | 模块缺失 → 回退 content-enhance.md 角度发现（LLM 直出，不落盘） |
+| 素材溯源（FactSheet） | 无 FactSheet / 模块缺失 → 维持写作规则"真实信息锚定"，跳过引用拦截 |
+| 编辑锚点（anchor.py） | 模块缺失 → 纯文本标记（旧语法） |
+| 修改执行（revision） | 未触发 → 保持现有自检，零回归 |
 | Playbook 不存在 | 用 writing-guide.md |

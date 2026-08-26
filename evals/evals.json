@@ -92,6 +92,50 @@
           "description": "H1 标题被提取为独立标题字段，不在正文 HTML 中"
         }
       ]
+    },
+    {
+      "id": 3,
+      "name": "writing-domain-artifacts",
+      "prompt": "写一篇公众号文章：为什么 AI Agent 正在杀死传统 SaaS。全自动跑完，不推送，生成本地预览。流程要完整：先做立意（生成并定型 IntentCard），素材采集后建 FactSheet 并核实，写作时使用编辑锚点并填写，写完后做快速自检（含事实溯源），再执行一轮修改复检。",
+      "expected_output": "写作域产物完整：intent.yaml（thesis 非空、status 定型）、facts.yaml（verified 条目）、文章中 :::anchor 块已填写、revision.yaml（baseline/after 复检），事实溯源自检通过",
+      "files": [],
+      "assertions": [
+        {
+          "name": "intent_card_created",
+          "type": "file_exists",
+          "description": "output/ 下存在 {slug}-intent.yaml（Step 2.5 立意卡）"
+        },
+        {
+          "name": "thesis_filled",
+          "type": "content_check",
+          "description": "intent.yaml 的 thesis 字段非空且 status 为 user_confirmed/locked"
+        },
+        {
+          "name": "factsheet_created",
+          "type": "file_exists",
+          "description": "output/ 下存在 {slug}-facts.yaml（Step 3.3 溯源表）"
+        },
+        {
+          "name": "facts_verified",
+          "type": "content_check",
+          "description": "facts.yaml 至少 1 条 status=verified 条目"
+        },
+        {
+          "name": "anchors_filled",
+          "type": "content_check",
+          "description": "文章包含已填写的 :::anchor 块（锚点块内有真实内容而非留空）"
+        },
+        {
+          "name": "revision_report",
+          "type": "file_exists",
+          "description": "output/ 下存在 {slug}-revision.yaml（含 baseline 与 after）"
+        },
+        {
+          "name": "facts_traced",
+          "type": "behavior_check",
+          "description": "4.5 快速自检包含事实溯源步骤，check-refs 未溯源信号数为 0 或已处理"
+        }
+      ]
     }
   ]
 }

@@ -24,6 +24,18 @@ if str(SKILL_ROOT) not in sys.path:
 
 from wewrite_common import find_config_path, has_image_config, load_config, load_history
 
+
+def _ensure_utf8_stdio():
+    """Windows GBK 控制台无法打印块字符/emoji，强制 stdout/stderr 走 UTF-8。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+
+_ensure_utf8_stdio()
+
 # Modules to check (import_name, package_name_for_pip)
 REQUIRED_MODULES = [
     ("markdown", "markdown"),
@@ -50,6 +62,14 @@ WEIGHTS = {
     "wechat_credentials": 0,
     "image_api_key": 0,
 }
+
+# Writing-domain toolkit modules (Phase A-D). Missing ones degrade gracefully.
+TOOLKIT_TOOLS = [
+    ("anchor", "编辑锚点（Step 4.4）", "纯文本标记（旧语法）"),
+    ("revision", "修改回路（Step 5.4）", "保持现有自检，零回归"),
+    ("intent", "立意回路（Step 2.5）", "content-enhance.md 角度发现"),
+    ("facts", "事实回路（Step 3.3/4.5）", "跳过引用拦截"),
+]
 
 MAX_ANTI_AI_SCORE = sum(v for v in WEIGHTS.values() if v > 0)  # 13
 
@@ -206,6 +226,19 @@ def check_dimensions():
     return [make_check("dimensions", "dimension_variance", "warn", "dimension overlap in recent articles → cross-article fingerprint risk")]
 
 
+def check_toolkits():
+    """Group 6: Check writing-domain toolkit modules (Phase A-D)."""
+    checks = []
+    for mod, usage, fallback in TOOLKIT_TOOLS:
+        if (SKILL_ROOT / "toolkit" / f"{mod}.py").exists():
+            checks.append(make_check("toolkits", f"toolkit_{mod}", "pass",
+                                    f"{mod}.py present ({usage})"))
+        else:
+            checks.append(make_check("toolkits", f"toolkit_{mod}", "warn",
+                                    f"{mod}.py missing → fallback: {fallback}"))
+    return checks
+
+
 def compute_summary(checks):
     """Compute pass/warn/fail counts, anti-AI score, and recommendations."""
     passed = sum(1 for c in checks if c["status"] == "pass")
@@ -284,6 +317,7 @@ def format_text(checks, summary, recs):
         "style": "Style",
         "enhancement": "Enhancement",
         "dimensions": "Dimension Variance",
+        "toolkits": "Writing Toolkits",
     }
     for c in checks:
         if c["group"] != current_group:
@@ -335,6 +369,7 @@ def run_all_checks():
     checks.extend(check_style())
     checks.extend(check_enhancements())
     checks.extend(check_dimensions())
+    checks.extend(check_toolkits())
     return checks
 
 
