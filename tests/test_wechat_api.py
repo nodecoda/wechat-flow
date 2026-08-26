@@ -50,5 +50,38 @@ with mock.patch.object(wa.requests, "get", return_value=FakeResp({"errcode": 400
     except ValueError as e:
         check("错误码抛 ValueError", "40013" in str(e))
 
+# ---- upload_image / upload_thumb ----
+import tempfile
+class FakeResp2:
+    def __init__(self, data): self._d = data
+    def json(self): return self._d
+
+tmp = tempfile.mkdtemp(prefix="wa_")
+try:
+    img = Path(tmp) / "pic.png"
+    img.write_bytes(b"\x89PNG\r\n\x1a\n" + b"0" * 32)
+    captured = {}
+    def fake_up(url, params=None, files=None, **kw):
+        captured["url"] = url
+        captured["params"] = params
+        captured["files"] = files
+        return FakeResp2({"url": "https://mmbiz.qpic.cn/x"})
+
+    with mock.patch.object(wa.requests, "post", side_effect=fake_up):
+        url = wa.upload_image("T", str(img))
+        check("upload_image 返回 url", url == "https://mmbiz.qpic.cn/x")
+        check("upload_image 带 token", captured["params"].get("access_token") == "T")
+        check("upload_image files media", "media" in captured["files"] and captured["files"]["media"][0] == "pic.png")
+
+    with mock.patch.object(wa.requests, "post", return_value=FakeResp2({"errcode": -1, "errmsg": "boom"})):
+        try:
+            wa.upload_image("T", str(img))
+            check("upload_image 错误抛 ValueError", False)
+        except ValueError:
+            check("upload_image 错误抛 ValueError", True)
+finally:
+    import shutil
+    shutil.rmtree(tmp, ignore_errors=True)
+
 print(f"\n{sum(1 for _, ok in results if ok)}/{len(results)} passed")
 sys.exit(0 if all(ok for _, ok in results) else 1)

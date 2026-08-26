@@ -44,5 +44,26 @@ check("_size_to_aspect 16:9", ig._size_to_aspect("1792x1024") == "16:9")
 check("_size_to_aspect 透传", ig._size_to_aspect("4:3") == "4:3")
 check("_size_to_aspect 非法→16:9", ig._size_to_aspect("xx") == "16:9")
 
+# ---- JimengProvider HMAC-SHA256 签名 ----
+jp = ig.JimengProvider(api_key="AK123", secret_key="SK456")
+signed = jp._sign("POST", "/", "Action=Submit&Version=2022-08-31",
+                  {"Content-Type": "application/json", "Host": "visual.volcengineapi.com"},
+                  b'{"x":1}')
+check("_sign 返回 Authorization", "Authorization" in signed)
+check("Authorization 前缀", signed["Authorization"].startswith("HMAC-SHA256 Credential=AK123/"))
+check("SignedHeaders 含 host", "SignedHeaders=" in signed["Authorization"])
+check("X-Date 格式", len(signed.get("X-Date", "")) == 16, signed.get("X-Date", ""))
+check("保留原 headers", signed.get("Content-Type") == "application/json")
+
+# _build_provider_chain：接受 config dict；providers 列表 / 空配置
+chain = ig._build_provider_chain({"image": {"providers": [{"provider": "openai", "api_key": "k"}]}})
+check("_build_provider_chain 单条", len(chain) == 1)
+try:
+    ig._build_provider_chain({})
+    check("_build_provider_chain 空配置抛 ValueError", False)
+except ValueError:
+    check("_build_provider_chain 空配置抛 ValueError", True)
+check("_build_provider_chain legacy 单 provider", len(ig._build_provider_chain({"image": {"provider": "openai", "api_key": "k"}})) == 1)
+
 print(f"\n{sum(1 for _, ok in results if ok)}/{len(results)} passed")
 sys.exit(0 if all(ok for _, ok in results) else 1)

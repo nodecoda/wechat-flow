@@ -50,5 +50,24 @@ check("split_frontmatter 返回 (frontmatter, body)", len(parts) == 2)
 check("split frontmatter 含 YAML 头", "allowed-tools" in parts[0])
 check("split body 保留正文", "# 标题" in parts[1])
 
+# ---- build() e2e：临时输出目录 ----
+import tempfile, shutil
+tmp = tempfile.mkdtemp(prefix="bo_")
+try:
+    out_dir = Path(tmp) / "openclaw"
+    bo.build(out_dir)
+    check("build 生成 SKILL.md", (out_dir / "SKILL.md").exists())
+    check("build 生成 wewrite_common.py", (out_dir / "wewrite_common.py").exists())
+    check("build 生成 toolkit/facts.py", (out_dir / "toolkit" / "facts.py").exists())
+    check("build 生成 scripts/humanness_score.py", (out_dir / "scripts" / "humanness_score.py").exists())
+    sk = (out_dir / "SKILL.md").read_text(encoding="utf-8")
+    check("build 转换 allowed-tools 剥离", "allowed-tools" not in sk)
+    check("build 转换 {baseDir}", "{baseDir}" in sk)
+    check("build 复制 requirements-min", (out_dir / "requirements-min.txt").exists())
+    wc = (out_dir / "wewrite_common.py").read_text(encoding="utf-8")
+    check("build 复制新版 wewrite_common", "ensure_skill_root" in wc)
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+
 print(f"\n{sum(1 for _, ok in results if ok)}/{len(results)} passed")
 sys.exit(0 if all(ok for _, ok in results) else 1)
