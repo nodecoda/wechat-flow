@@ -13,6 +13,20 @@ def _ensure_utf8_stdio():
         except Exception:
             pass
 
+def ensure_skill_root() -> Path:
+    """Return the skill root and guarantee it is importable.
+
+    wewrite_common.py always sits at the skill root: the repo root in the
+    source layout (scripts/, toolkit/) and ``dist/openclaw/`` in the built
+    layout. Scripts call this as the single source of truth for the root and
+    for the sys.path bootstrap instead of repeating per-file boilerplate.
+    """
+    root = Path(__file__).resolve().parent
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    return root
+
+
 def _skill_root_from(value: Path | str | None) -> Path:
     if value is None:
         return Path(__file__).resolve().parent

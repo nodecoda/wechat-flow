@@ -168,13 +168,19 @@ git clone --depth 1 https://github.com/nodecoda/wechat-flow.git ~/.openclaw/skil
 cd ~/.openclaw/skills/wechat-flow && pip install -r requirements.txt
 ```
 
-安装后 skill 会在每次运行时自动检查新版本。有更新时说"更新"即可升级。
+安装后 skill 会在每次运行时自动检查新版本。有更新时说“更新”即可更新。
 
-如果你要使用“从公众号 URL 抓正文 / 学习排版”这类浏览器降级抓取能力，建议额外安装 Playwright 作为可选 fallback：
+**依赖分级安装**（按需选择，均从项目根目录执行）：
 
 ```bash
-pip install playwright
-playwright install chromium
+# 完整写作管线（推荐）：markdown 排版 / 生图 / 发布全功能
+pip install -r requirements.txt
+
+# 最小核心：仅 pyyaml + requests，写作域工具链（intent/facts/anchor/revision）可用
+pip install -r requirements-min.txt
+
+# 浏览器降级抓取（可选）：fetch_article 的 L2/L3 反检测抓取
+pip install -r requirements-browser.txt
 ```
 
 ### 配置（可选）
@@ -213,7 +219,10 @@ wechat-flow/
 ├── writing-config.example.yaml # 写作参数模板
 ├── wewrite_common.py          # 共享模块（config/history/写作域实体/UTF-8）
 ├── VERSION                    # 版本号（Step 1.2 更新检查用）
-├── requirements.txt
+├── requirements.txt           # 完整写作管线（排版/生图/发布）
+├── requirements-min.txt       # 最小核心（pyyaml + requests）
+├── requirements-browser.txt   # 可选浏览器降级抓取
+├── pyproject.toml             # 元数据（requires-python >= 3.11）
 │
 ├── dist/openclaw/            # OpenClaw 兼容版（CI 自动构建）
 ├── tests/                     # 回归测试（facts/anchor/intent/revision/humanness/param）

@@ -1,0 +1,3 @@
+# 最小核心依赖：写作域工具链（intent/facts/anchor/revision/diagnose/seo/hotspots/stats/image_gen）
+pyyaml>=6.0
+requests>=2.31

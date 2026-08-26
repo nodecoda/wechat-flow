@@ -37,9 +37,7 @@ from pathlib import Path
 
 import requests
 
-SKILL_ROOT = Path(__file__).resolve().parent.parent
-if str(SKILL_ROOT) not in sys.path:
-    sys.path.insert(0, str(SKILL_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from wewrite_common import load_config as _load_config
 

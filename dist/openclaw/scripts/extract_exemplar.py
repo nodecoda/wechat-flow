@@ -26,15 +26,10 @@ import yaml
 sys.path.insert(0, str(Path(__file__).parent))
 import humanness_score as hs
 
+from wewrite_common import ensure_skill_root, _ensure_utf8_stdio
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from wewrite_common import _ensure_utf8_stdio  # noqa: E402
-
+SKILL_DIR = ensure_skill_root()
 _ensure_utf8_stdio()
-
-
-SKILL_DIR = Path(__file__).parent.parent
 EXEMPLARS_DIR = SKILL_DIR / "references" / "exemplars"
 INDEX_FILE = EXEMPLARS_DIR / "index.yaml"
 

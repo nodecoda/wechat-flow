@@ -13,9 +13,7 @@ import sys
 import webbrowser
 from pathlib import Path
 
-SKILL_ROOT = Path(__file__).resolve().parent.parent
-if str(SKILL_ROOT) not in sys.path:
-    sys.path.insert(0, str(SKILL_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from converter import WeChatConverter, preview_html
 from theme import load_theme, list_themes
