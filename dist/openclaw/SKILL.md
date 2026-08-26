@@ -39,8 +39,10 @@ description: |
 - 用户说"学习我的修改" → `读取: {baseDir}/references/learn-edits.md`。支持两种来源：
   - **本地修改**（默认）：用户在 `output/` 的 markdown 文件中修改
   - **微信草稿箱同步**：`python3 {baseDir}/scripts/learn_edits.py --from-wechat`，自动从草稿箱拉回最新内容，与本地原文做纯文本 diff
-- 用户说"学习排版"/"学排版" → `python3 {baseDir}/scripts/learn_theme.py <url> --name <name>`，用户需提供一个公众号文章 URL 和主题名称。提取完成后提示用户设置 `style.yaml` 的 `theme` 字段。
-- 用户说"学习这篇文章"/"导入范文" + URL → `python3 {baseDir}/scripts/fetch_article.py <url> -o {baseDir}/output/_fetch_tmp.md && python3 {baseDir}/scripts/extract_exemplar.py {baseDir}/output/_fetch_tmp.md -s <账号名>`，从公众号文章 URL 提取正文并导入范文库。支持四级降级（requests → Camoufox → Playwright → 手动 HTML）。
+- 用户说"学习排版"/"学排版" → `python3 {baseDir}/scripts/learn_theme.py <url> --name <name>`，用户需提供一个公众号文章 URL 和主题名称。
+   提取完成后提示用户设置 `style.yaml` 的 `theme` 字段。
+- 用户说"学习这篇文章"/"导入范文" + URL → `python3 {baseDir}/scripts/fetch_article.py <url> -o {baseDir}/output/_fetch_tmp.md && python3 {baseDir}/scripts/extract_exemplar.py {baseDir}/output/_fetch_tmp.md -s <账号名>`，从公众号文章 URL 提取正文并导入范文库。
+   支持四级降级（requests → Camoufox → Playwright → 手动 HTML）。
 - 用户说"看看文章数据" → `读取: {baseDir}/references/effect-review.md`
 - 用户说"检查一下"/"自检"/"这篇文章怎么样" → 生成报告（生成档案 + 质量检查，≤5 条可操作建议）。完整步骤 → `{baseDir}/references/operations.md#自检报告生成辅助功能`
 - 用户说"更新"/"更新 WeWrite"/"升级" → 在 `{baseDir}` 执行 `git pull origin master`，完成后告知版本变化
@@ -93,14 +95,25 @@ cd {baseDir} && git fetch origin master --quiet 2>/dev/null
 
 **2.1 热点抓取**：`python3 {baseDir}/scripts/fetch_hotspots.py --limit 30`。**降级**：脚本报错 → web_search "今日热点 {topics第一个垂类}"
 
-**2.2 历史分析 + SEO**：`读取: {baseDir}/history.yaml（不存在则跳过）`；`python3 {baseDir}/scripts/seo_keywords.py --json {关键词}`。历史分析（有 stats 时）：哪种 `framework`/`enhance_strategy` 表现最好 → 选择时加权；近 7 天已写关键词降分去重。**降级**：SEO 脚本报错 → LLM 判断；history 无 stats → 跳过效果分析仅去重
+**2.2 历史分析 + SEO**：`读取: {baseDir}/history.yaml（不存在则跳过）`；`python3 {baseDir}/scripts/seo_keywords.py --json {关键词}`。
+历史分析（有 stats 时）：哪种 `framework`/`enhance_strategy` 表现最好 → 选择时加权；近 7 天已写关键词降分去重。
+**降级**：SEO 脚本报错 → LLM 判断；history 无 stats → 跳过效果分析仅去重
 
-**2.3 生成选题**：`读取: {baseDir}/references/topic-selection.md`。生成 **10 个选题**：7-8 个热点选题（按 topic-selection.md 评分）+ 2-3 个常青选题（从用户 `topics` 领域生成长尾：教程/方法论/经验/工具推荐，标注「常青」，适合干货/测评型）。每个含标题/评分/点击潜力/SEO 友好度/推荐框架。自动 → 选最高分；交互 → 展示全部等用户选
+**2.3 生成选题**：`读取: {baseDir}/references/topic-selection.md`。生成 **10 个选题**：
+7-8 个热点选题（按 topic-selection.md 评分）+
+2-3 个常青选题（从用户 `topics` 领域生成长尾：教程/方法论/经验/工具推荐，标注「常青」，适合干货/测评型）。
+每个含标题/评分/点击潜力/SEO 友好度/推荐框架。
+自动 → 选最高分；交互 → 展示全部等用户选
 
 **2.5 立意**（选题后、框架前——先有要论证的判断，才有论证的结构）：`读取: {baseDir}/references/intent-cards.md`。**人机协作**：观点是人格与判断力的所在，机器给候选/做校验，终审留给人。
-1. **脚手架**：`python3 {baseDir}/toolkit/intent.py scaffold {slug} --topic "{选题}" [--facts output/{slug}-facts.yaml]` → 生成 `output/{slug}-intent.yaml`；有 FactSheet 时预填已核实证据。
+1. **脚手架**：
+   `python3 {baseDir}/toolkit/intent.py scaffold {slug} --topic "{选题}" [--facts output/{slug}-facts.yaml]` → 生成 `output/{slug}-intent.yaml`；
+   有 FactSheet 时预填已核实证据。
 2. **候选立意**（Agent）：按 intent-cards.md 四形态（反转/升维/预测/筛选）生成 3-5 个候选判断句 → `thesis_candidates`。
-3. **检验三问**：`python3 {baseDir}/toolkit/intent.py validate output/{slug}-intent.yaml`——信息差（from≠to）/可信度（evidence 非空）/边界（boundary 非空）/黑名单（命中淘汰）。不过 → 回第 2 步重写对应项。
+3. **检验三问**：
+   `python3 {baseDir}/toolkit/intent.py validate output/{slug}-intent.yaml`——
+   信息差（from≠to）/可信度（evidence 非空）/边界（boundary 非空）/黑名单（命中淘汰）。
+   不过 → 回第 2 步重写对应项。
 4. **终审**：交互 → 展示候选用户选定/改写；全自动 → Agent 选最尖锐且有支撑的候选。选中句写入 `thesis`，填 `info_gap`、`boundary`。
 5. **标题候选**：`python3 {baseDir}/toolkit/intent.py titles output/{slug}-intent.yaml`（规则模板，Step 5 按 SEO 打磨）。
 6. **定型**：`python3 {baseDir}/toolkit/intent.py lock output/{slug}-intent.yaml`
@@ -136,7 +149,10 @@ cd {baseDir} && git fetch origin master --quiet 2>/dev/null
 
 **降级**：web_search 不可用 → 用 LLM 训练数据中可验证的公开信息。但需告知用户："素材采集未能使用 web_search，建议在编辑锚点处多加入你自己的内容。"密度强化不依赖搜索，始终执行。
 
-**3.3 建溯源表**（素材采集完成后执行，把「禁止编造」落成可核对的清单）：`python3 {baseDir}/toolkit/facts.py init {slug} [--item "声明|来源URL|来源名"]...` 将 3.2 采集的真实素材登记为 pending 条目。逐条核验 → `facts.py verify {slug} --index N --status verified|rejected`（数字/日期/具名来源强制核验）。**降级**：无 FactSheet 或模块缺失 → 跳过建表，写作时凭素材列表自我约束（不强制）。
+**3.3 建溯源表**（素材采集完成后执行，把「禁止编造」落成可核对的清单）：
+`python3 {baseDir}/toolkit/facts.py init {slug} [--item "声明|来源URL|来源名"]...` 将 3.2 采集的真实素材登记为 pending 条目。
+逐条核验 → `facts.py verify {slug} --index N --status verified|rejected`（数字/日期/具名来源强制核验）。
+**降级**：无 FactSheet 或模块缺失 → 跳过建表，写作时凭素材列表自我约束（不强制）。
 ---
 
 ### Step 4: 写作
@@ -169,15 +185,20 @@ cd {baseDir} && git fetch origin master --quiet 2>/dev/null
 
 人格文件定义了：语气浓度、数据呈现方式、情绪弧线、段落节奏、不确定性表达模板等。作为写作的硬性约束执行。
 
-**优先级**：playbook.md（confidence ≥ 5 的规则）> persona > 范文风格 > writing-guide.md。writing-guide 是底线（基础写作规范），范文提供风格示范（句长节奏、情绪表达方式），persona 在此基础上特化风格参数（语气浓度、数据呈现），playbook 中高置信度规则是用户个性化的最终覆盖。playbook 中 confidence < 5 的规则作为软性参考。
+**优先级**：playbook.md（confidence ≥ 5 的规则）> persona > 范文风格 > writing-guide.md。
+writing-guide 是底线（基础写作规范），范文提供风格示范（句长节奏、情绪表达方式），persona 在此基础上特化风格参数（语气浓度、数据呈现），playbook 中高置信度规则是用户个性化的最终覆盖。
+playbook 中 confidence < 5 的规则作为软性参考。
 
-**4.3 范文风格注入**（有 `references/exemplars/index.yaml` 时执行）：筛 `category` 匹配当前框架的 top 3 范文，读取片段注入写作 prompt（只仿结构模式：句长方差/情绪锐度/自我纠正/非总结式收尾，不携带具体内容或风格）。Category 映射、种子 fallback 注入模板、建库命令 → `{baseDir}/references/operations.md#范文风格注入step-43`
+**4.3 范文风格注入**（有 `references/exemplars/index.yaml` 时执行）：
+筛 `category` 匹配当前框架的 top 3 范文，读取片段注入写作 prompt（只仿结构模式：句长方差/情绪锐度/自我纠正/非总结式收尾，不携带具体内容或风格）。
+Category 映射、种子 fallback 注入模板、建库命令 → `{baseDir}/references/operations.md#范文风格注入step-43`
 **4.4 写文章**：
 - H1（10-28 字）+ H2 结构，1500-2500 字；素材 + 增强材料分散嵌入各 H2（增强策略核心输出须贯穿全文，不只装饰性出现一次）
 - **写作人格**：按 4.2 加载的 persona 参数写作（数据呈现/个人声量浓度/不确定性表达等）
 - **收尾**：persona 的 `closing_tendency` 仅作倾向参考，按文章内容/情绪弧线自判；若 history 最近 3 篇有 `closing_type`，避免雷同
 - **写作规范**：writing-guide.md 基础规则（禁词/句长方差/词汇混用）在初稿阶段生效
-- **2-3 个编辑锚点**：`:::anchor {type}`（experience/opinion/story/data），可用 `python3 {baseDir}/toolkit/anchor.py generate {output} --count 2` 生成，发布前 `anchor.py check {output}` 确认已填写（未填写显示虚线提示框）
+- **2-3 个编辑锚点**：`:::anchor {type}`（experience/opinion/story/data），可用 `python3 {baseDir}/toolkit/anchor.py generate {output} --count 2` 生成，
+   发布前 `anchor.py check {output}` 确认已填写（未填写显示虚线提示框）
 - 可选容器语法：`:::dialogue`/`:::timeline`/`:::callout`/`:::quote`。保存到 `{baseDir}/output/{date}-{slug}.md`
 
 **4.5 快速自检**（写完后立即执行，减少 Step 5 重写概率）：对初稿做 6 项快速扫描，**当场修复**：
@@ -186,7 +207,10 @@ cd {baseDir} && git fetch origin master --quiet 2>/dev/null
 3. **开头钩子**：前 3 句是否制造悬念/冲突/好奇心；平铺直叙则重写开头
 4. **增强贯穿**：增强策略核心输出只出现在一段？在其余 H2 补上
 5. **金句检查**：全文至少 1 句可独立截图转发；没有则在情绪高点补一句
-6. **事实溯源**（有 FactSheet 时）：`python3 {baseDir}/toolkit/facts.py check-refs {baseDir}/output/{date}-{slug}.md`——文中数字/日期/具名来源须命中 verified 条目；未命中改写为模糊表达或删除，或回 Step 3.3 补登记核实。**降级**：无 FactSheet 或模块缺失 → 跳过，不阻断。
+6. **事实溯源**（有 FactSheet 时）：
+   `python3 {baseDir}/toolkit/facts.py check-refs {baseDir}/output/{date}-{slug}.md`——文中数字/日期/具名来源须命中 verified 条目；
+   未命中改写为模糊表达或删除，或回 Step 3.3 补登记核实。
+   **降级**：无 FactSheet 或模块缺失 → 跳过，不阻断。
 第 1-5 项 LLM 自行完成；第 6 项按需调用。
 ---
 
@@ -199,10 +223,16 @@ cd {baseDir} && git fetch origin master --quiet 2>/dev/null
 **5.1 SEO**：3 个备选标题 + 摘要（≤40 字）+ 5 标签 + 关键词密度优化
 
 **5.2 质量验证**（两维度，每项逐一检查；标准明细表 → `{baseDir}/references/operations.md#质量验证标准step-52`）：
-- **A. 写作质量**（writing-guide.md 规则）：句长方差（最值差 ≥30 字）/词汇温度（500 字 ≥3 种温度）/段落节奏（无连续相近长度）/情绪极差（负面 ≥2 处）/禁词（0 命中）/真实锚定（每 H2 ≥1 条真实素材）/具体性（500 字 ≥2 处细节）
+- **A. 写作质量**（writing-guide.md 规则）：句长方差（最值差 ≥30 字）/词汇温度（500 字 ≥3 种温度）/段落节奏（无连续相近长度）/情绪极差（负面 ≥2 处）/禁词（0 命中）/
+  真实锚定（每 H2 ≥1 条真实素材）/具体性（500 字 ≥2 处细节）
 - **B. 内容质量**（Step 3.2 增强策略）：增强贯穿/开头钩子/金句密度/操作密度（痛点·清单）/角度锐度（热点·观点）/场景感（故事·复盘）/真实声音（对比）
 - 不通 → **定向修复**：只换不达标的句子/段落，每轮最多改 3 处，改完立即复查该项；2 轮仍不过 → 标注跳过。
-**5.3 脚本辅助验证**（补充 5.2）：Agent 先综合评估（H2 语气差异/信息密度交替/段落节奏/阅读流畅度）给 0-1 分，再 `python3 {baseDir}/scripts/humanness_score.py {article_path} --json --tier3 {agent_tier3_score}`。解读 `composite_score`（0=质量高，100=问题多）：**<30** 通过；**30-50** 修 `param_scores` 最低 1-2 项对应句子后重打分（1 轮）；**>50** 取最低 2-3 项逐项定向修复（每项 1-2 处，最多 2 轮），仍 >50 标 `DONE_WITH_CONCERNS`。细则 → `{baseDir}/references/operations.md#脚本辅助验证细则step-53`
+**5.3 脚本辅助验证**（补充 5.2）：Agent 先综合评估（H2 语气差异/信息密度交替/段落节奏/阅读流畅度）给 0-1 分，
+再 `python3 {baseDir}/scripts/humanness_score.py {article_path} --json --tier3 {agent_tier3_score}`。
+解读 `composite_score`（0=质量高，100=问题多）：**<30** 通过；**30-50** 修 `param_scores` 最低 1-2 项对应句子后重打分（1 轮）；
+**>50** 取最低 2-3 项逐项定向修复（每项 1-2 处，最多 2 轮），
+仍 >50 标 `DONE_WITH_CONCERNS`。
+细则 → `{baseDir}/references/operations.md#脚本辅助验证细则step-53`
 **5.4 修改执行 + 改后复检**（交互模式、用户说"修改/改一下/润色"，或 5.3 两轮修复仍不通过时触发；全自动且 5.3 通过则跳过）：
 
 ```
@@ -274,7 +304,9 @@ python3 {baseDir}/toolkit/cli.py preview {markdown} --theme {theme} --no-open -o
 
 ### Step 8: 收尾
 
-**8.1 写入历史**（推送成功或降级都要写，文件不存在则创建）：向 `{baseDir}/history.yaml` 追加一条记录。必填：`date/title/output_file/framework/word_count/media_id/writing_persona/closing_type`；写作域字段（`intent/fact_sheet/anchors/revision/stats`）完整 schema → `{baseDir}/references/operations.md#historyyaml-schemastep-81`
+**8.1 写入历史**（推送成功或降级都要写，文件不存在则创建）：向 `{baseDir}/history.yaml` 追加一条记录。
+必填：`date/title/output_file/framework/word_count/media_id/writing_persona/closing_type`；
+写作域字段（`intent/fact_sheet/anchors/revision/stats`）完整 schema → `{baseDir}/references/operations.md#historyyaml-schemastep-81`
 **8.2 回复用户**：
 
 - 最终标题 + 2 备选 + 摘要 + 5 标签 + media_id
