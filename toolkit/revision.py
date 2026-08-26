@@ -34,15 +34,22 @@ def _entity_stem(markdown_path) -> str:
     stem = Path(markdown_path).stem
     return DATE_PREFIX_RE.sub("", stem)
 
-SKILL_ROOT = Path(__file__).resolve().parent.parent
-if str(SKILL_ROOT) not in sys.path:
-    sys.path.insert(0, str(SKILL_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from wewrite_common import (  # noqa: E402
+    _ensure_utf8_stdio,
+    ensure_skill_root,
+    load_output_entity,
+    output_entity_path,
+    save_output_entity,
+)
+
+SKILL_ROOT = ensure_skill_root()
 SCRIPTS_DIR = SKILL_ROOT / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 import humanness_score as hs  # noqa: E402
-from wewrite_common import _ensure_utf8_stdio, load_output_entity, output_entity_path, save_output_entity  # noqa: E402
 
 
 _ensure_utf8_stdio()

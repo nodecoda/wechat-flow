@@ -18,13 +18,12 @@ from pathlib import Path
 
 import yaml
 
-SKILL_ROOT = Path(__file__).resolve().parent.parent
-if str(SKILL_ROOT) not in sys.path:
-    sys.path.insert(0, str(SKILL_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import find_config_path, has_image_config, load_config, load_history, _ensure_utf8_stdio
+from wewrite_common import ensure_skill_root, find_config_path, has_image_config, load_config, load_history, _ensure_utf8_stdio  # noqa: E402
 
 
+SKILL_ROOT = ensure_skill_root()
 _ensure_utf8_stdio()
 
 # Modules to check (import_name, package_name_for_pip)

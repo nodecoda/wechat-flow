@@ -30,18 +30,19 @@ import re
 import sys
 from pathlib import Path
 
-SKILL_ROOT = Path(__file__).resolve().parent.parent
-if str(SKILL_ROOT) not in sys.path:
-    sys.path.insert(0, str(SKILL_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import yaml  # noqa: E402
 from wewrite_common import (  # noqa: E402
     _ensure_utf8_stdio,
+    ensure_skill_root,
     load_config,
     load_output_entity,
     output_entity_path,
     save_output_entity,
 )
+
+SKILL_ROOT = ensure_skill_root()
 
 ANGLES = ("反转", "升维", "预测", "筛选")
 
