@@ -30,6 +30,16 @@ import sys
 from pathlib import Path
 
 
+SKILL_ROOT = Path(__file__).resolve().parent.parent
+if str(SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT))
+
+from wewrite_common import _ensure_utf8_stdio  # noqa: E402
+
+_ensure_utf8_stdio()
+
+
+
 # ============================================================
 # Constants
 # ============================================================
@@ -356,7 +366,8 @@ _BELL_CURVE_CHECKS = {
     "self_correction": 0.20,
     "sentence_length_range": 0.71,
     "paragraph_length_variance": 0.52,
-    "banned_words": 0.73,
+    # 注意：banned_words 是硬规则（0 禁用词=满分），不参与钟形校准——
+    # 否则"完美"会被惩罚，出现"有禁用词反而更像人"的倒置。
 }
 
 

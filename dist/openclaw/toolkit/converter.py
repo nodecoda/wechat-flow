@@ -418,7 +418,25 @@ class WeChatConverter:
         text = self._process_timeline(text)
         text = self._process_callout(text)
         text = self._process_quote_block(text)
+        text = self._process_anchor(text)
         return text
+
+    def _process_anchor(self, text: str) -> str:
+        """Convert :::anchor blocks to a visible editing-hint box.
+
+        Anchors are drafting aids: the author replaces the block with their
+        own words before publishing. Leftover blocks render as a dashed hint
+        box (data-anchor attribute), are excluded from the digest, and are
+        flagged by the publish CLI.
+        """
+        def replace_anchor(match):
+            atype = match.group(1).strip().lower()
+            prompt = match.group(2).strip()
+            return (f'<section data-anchor="{atype}" style="border: 1px dashed #f59e0b; '
+                    f'border-radius: 6px; background: #fffbeb; padding: 12px 14px; '
+                    f'margin: 16px 0; font-size: 14px; color: #92400e; line-height: 1.6;">'
+                    f'\u270f\ufe0f 编辑锚点（{atype}）：{prompt}</section>')
+        return re.sub(r":::anchor\s+(\w+)\n(.*?)\n:::", replace_anchor, text, flags=re.DOTALL)
 
     def _process_dialogue(self, text: str) -> str:
         """Convert :::dialogue blocks to chat bubble HTML."""
@@ -510,6 +528,9 @@ class WeChatConverter:
     def _generate_digest(self, html: str, max_bytes: int = 120) -> str:
         """Generate a digest that fits within WeChat's byte limit (120 bytes UTF-8)."""
         soup = BeautifulSoup(html, "html.parser")
+        # Exclude edit-anchor hint boxes from the digest
+        for node in soup.select("[data-anchor]"):
+            node.decompose()
         text = soup.get_text(separator=" ", strip=True)
         text = re.sub(r"\s+", " ", text).strip()
 

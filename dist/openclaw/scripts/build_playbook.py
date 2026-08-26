@@ -19,7 +19,16 @@ import json
 import sys
 from pathlib import Path
 
-SKILL_DIR = Path(__file__).parent.parent
+
+SKILL_DIR = Path(__file__).resolve().parent.parent
+if str(SKILL_DIR) not in sys.path:
+    sys.path.insert(0, str(SKILL_DIR))
+
+from wewrite_common import _ensure_utf8_stdio  # noqa: E402
+
+_ensure_utf8_stdio()
+
+
 
 
 def load_corpus() -> list[dict]:

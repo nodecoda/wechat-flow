@@ -19,6 +19,13 @@ from pathlib import Path
 import yaml
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
+if str(SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT))
+
+from wewrite_common import find_config_path, has_image_config, load_config, load_history, _ensure_utf8_stdio
+
+
+_ensure_utf8_stdio()
 
 # Modules to check (import_name, package_name_for_pip)
 REQUIRED_MODULES = [
@@ -46,6 +53,14 @@ WEIGHTS = {
     "wechat_credentials": 0,
     "image_api_key": 0,
 }
+
+# Writing-domain toolkit modules (Phase A-D). Missing ones degrade gracefully.
+TOOLKIT_TOOLS = [
+    ("anchor", "编辑锚点（Step 4.4）", "纯文本标记（旧语法）"),
+    ("revision", "修改回路（Step 5.4）", "保持现有自检，零回归"),
+    ("intent", "立意回路（Step 2.5）", "content-enhance.md 角度发现"),
+    ("facts", "事实回路（Step 3.3/4.5）", "跳过引用拦截"),
+]
 
 MAX_ANTI_AI_SCORE = sum(v for v in WEIGHTS.values() if v > 0)  # 13
 
@@ -80,9 +95,9 @@ def check_dependencies():
 def check_config():
     """Group 2: Check config.yaml and its fields."""
     checks = []
-    config_path = SKILL_ROOT / "config.yaml"
+    config_path = find_config_path(SKILL_ROOT)
 
-    if not config_path.exists():
+    if config_path is None:
         checks.append(make_check(
             "config", "config_file", "warn",
             "not found → publish and image generation disabled",
@@ -93,10 +108,10 @@ def check_config():
         checks.append(make_check("config", "image_api_key", "warn", "no config.yaml", impact="skip_image_gen"))
         return checks
 
-    checks.append(make_check("config", "config_file", "pass", "found"))
+    detail = str(config_path.relative_to(SKILL_ROOT)) if config_path.is_relative_to(SKILL_ROOT) else str(config_path)
+    checks.append(make_check("config", "config_file", "pass", f"found at {detail}"))
 
-    with open(config_path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f) or {}
+    cfg = load_config(SKILL_ROOT)
 
     # WeChat credentials
     wechat = cfg.get("wechat", {})
@@ -105,12 +120,10 @@ def check_config():
     else:
         checks.append(make_check("config", "wechat_credentials", "warn", "missing appid/secret", impact="skip_publish"))
 
-    # Image API key
-    image = cfg.get("image", {})
-    if image.get("api_key"):
-        checks.append(make_check("config", "image_api_key", "pass", "configured"))
+    if has_image_config(cfg):
+        checks.append(make_check("config", "image_api_key", "pass", "configured via api_key or providers"))
     else:
-        checks.append(make_check("config", "image_api_key", "warn", "missing → image generation will be skipped", impact="skip_image_gen"))
+        checks.append(make_check("config", "image_api_key", "warn", "missing api_key/providers → image generation will be skipped", impact="skip_image_gen"))
 
     return checks
 
@@ -172,9 +185,7 @@ def check_enhancements():
     # history.yaml
     history_path = SKILL_ROOT / "history.yaml"
     if history_path.exists():
-        with open(history_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        articles = data if isinstance(data, list) else (data or {}).get("articles", [])
+        articles = load_history(SKILL_ROOT)
         if articles:
             checks.append(make_check("enhancement", "history_articles", "pass", f"{len(articles)} articles"))
         else:
@@ -191,10 +202,7 @@ def check_dimensions():
     if not history_path.exists():
         return [make_check("dimensions", "dimension_variance", "skip", "no history.yaml")]
 
-    with open(history_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-
-    articles = data if isinstance(data, list) else (data or {}).get("articles", [])
+    articles = load_history(SKILL_ROOT)
     # Get last 3 articles that have dimensions
     recent = [a for a in articles if a.get("dimensions")][-3:]
 
@@ -207,6 +215,19 @@ def check_dimensions():
         return [make_check("dimensions", "dimension_variance", "pass", "last 3 articles have distinct dimensions")]
 
     return [make_check("dimensions", "dimension_variance", "warn", "dimension overlap in recent articles → cross-article fingerprint risk")]
+
+
+def check_toolkits():
+    """Group 6: Check writing-domain toolkit modules (Phase A-D)."""
+    checks = []
+    for mod, usage, fallback in TOOLKIT_TOOLS:
+        if (SKILL_ROOT / "toolkit" / f"{mod}.py").exists():
+            checks.append(make_check("toolkits", f"toolkit_{mod}", "pass",
+                                    f"{mod}.py present ({usage})"))
+        else:
+            checks.append(make_check("toolkits", f"toolkit_{mod}", "warn",
+                                    f"{mod}.py missing → fallback: {fallback}"))
+    return checks
 
 
 def compute_summary(checks):
@@ -267,7 +288,7 @@ def file_status_map(checks):
             break
 
     return {
-        "config_yaml": (SKILL_ROOT / "config.yaml").exists(),
+        "config_yaml": find_config_path(SKILL_ROOT) is not None,
         "style_yaml": (SKILL_ROOT / "style.yaml").exists(),
         "writing_config_yaml": (SKILL_ROOT / "writing-config.yaml").exists(),
         "playbook_md": (SKILL_ROOT / "playbook.md").exists(),
@@ -287,6 +308,7 @@ def format_text(checks, summary, recs):
         "style": "Style",
         "enhancement": "Enhancement",
         "dimensions": "Dimension Variance",
+        "toolkits": "Writing Toolkits",
     }
     for c in checks:
         if c["group"] != current_group:
@@ -338,6 +360,7 @@ def run_all_checks():
     checks.extend(check_style())
     checks.extend(check_enhancements())
     checks.extend(check_dimensions())
+    checks.extend(check_toolkits())
     return checks
 
 

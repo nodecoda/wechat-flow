@@ -20,23 +20,16 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import requests
-import yaml
 
 SKILL_DIR = Path(__file__).parent.parent
-TOOLKIT_CONFIG_PATHS = [
-    SKILL_DIR / "config.yaml",                      # skill root
-    SKILL_DIR / "toolkit" / "config.yaml",           # toolkit dir
-    Path.home() / ".config" / "wewrite" / "config.yaml",
-    Path.cwd() / "config.yaml",
-]
+if str(SKILL_DIR) not in sys.path:
+    sys.path.insert(0, str(SKILL_DIR))
+
+from wewrite_common import load_config, load_history, save_history, _ensure_utf8_stdio
 
 
-def _load_toolkit_config() -> dict:
-    for p in TOOLKIT_CONFIG_PATHS:
-        if p.exists():
-            with open(p, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-    return {}
+_ensure_utf8_stdio()
+
 
 
 def _get_access_token(appid: str, secret: str) -> str:
@@ -96,10 +89,7 @@ def update_history(stats_list: list[dict]):
         print("No history.yaml found.")
         return
 
-    with open(history_path, "r", encoding="utf-8") as f:
-        history = yaml.safe_load(f) or {}
-
-    articles = history.get("articles", [])
+    articles = load_history(SKILL_DIR)
     if not articles:
         print("No articles in history to update.")
         return
@@ -128,9 +118,7 @@ def update_history(stats_list: list[dict]):
             updated += 1
 
     if updated > 0:
-        history["articles"] = articles
-        with open(history_path, "w", encoding="utf-8") as f:
-            yaml.dump(history, f, allow_unicode=True, default_flow_style=False)
+        save_history(articles, SKILL_DIR)
         print(f"Updated stats for {updated} article(s).")
     else:
         print("No matching articles found in stats data.")
@@ -141,7 +129,7 @@ def main():
     parser.add_argument("--days", type=int, default=3, help="Days to look back")
     args = parser.parse_args()
 
-    cfg = _load_toolkit_config()
+    cfg = load_config(SKILL_DIR)
     wechat_cfg = cfg.get("wechat", {})
     appid = wechat_cfg.get("appid")
     secret = wechat_cfg.get("secret")

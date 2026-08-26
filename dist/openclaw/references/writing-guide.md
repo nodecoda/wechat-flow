@@ -325,9 +325,15 @@ AI 文章的信息密度是一条平线。人类文章是波浪形的：有的�
 
 写文章时，在 2-3 个关键位置插入编辑锚点：
 
-```html
-<!-- ✏️ 编辑建议：在这里加一句你自己的经历/看法 -->
+```markdown
+:::anchor experience
+在这里加一句你自己的话：写一段真实的个人经历或感受（1-2 句即可）。
+:::
 ```
+
+类型：`experience`（经历）/ `opinion`（判断）/ `story`（细节）/ `data`（数据）。
+可自动生成：`python3 {skill_dir}/toolkit/anchor.py generate {output} --count 2`；
+发布前确认：`python3 {skill_dir}/toolkit/anchor.py check {output}`（未填写的锚点会在预览/草稿中显示为虚线提示框，发布 CLI 会警告）。
 
 **选择标准**（按优先级）：
 1. **观点判断处**：你写了"我觉得..."或"我的判断是..."的地方——用户替换为自己的真实判断

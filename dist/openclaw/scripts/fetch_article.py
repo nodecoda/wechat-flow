@@ -23,6 +23,16 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup, NavigableString
 
+
+SKILL_ROOT = Path(__file__).resolve().parent.parent
+if str(SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT))
+
+from wewrite_common import _ensure_utf8_stdio  # noqa: E402
+
+_ensure_utf8_stdio()
+
+
 _BROWSER_UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "

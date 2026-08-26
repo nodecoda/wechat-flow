@@ -60,7 +60,7 @@
 用收集到的信息自动生成 `{skill_dir}/style.yaml`。
 
 同时确保以下文件/目录存在（不存在则创建）：
-- `{skill_dir}/history.yaml` → 初始化为 `articles: []`
+- `{skill_dir}/history.yaml` → 初始化为 YAML 列表 `[]`
 - `{skill_dir}/corpus/` → 空目录
 - `{skill_dir}/lessons/` → 空目录
 

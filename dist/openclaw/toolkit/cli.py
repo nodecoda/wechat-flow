@@ -13,29 +13,20 @@ import sys
 import webbrowser
 from pathlib import Path
 
-import yaml
+SKILL_ROOT = Path(__file__).resolve().parent.parent
+if str(SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT))
 
 from converter import WeChatConverter, preview_html
 from theme import load_theme, list_themes
 from wechat_api import get_access_token, upload_image, upload_thumb
 from publisher import create_draft, create_image_post
-
-# Config file search order
-CONFIG_PATHS = [
-    Path.cwd() / "config.yaml",
-    Path(__file__).parent.parent / "config.yaml",  # skill root
-    Path(__file__).parent / "config.yaml",          # toolkit dir
-    Path.home() / ".config" / "wewrite" / "config.yaml",
-]
+from wewrite_common import load_config, _ensure_utf8_stdio
 
 
-def load_config() -> dict:
-    """Load config from first found config.yaml."""
-    for p in CONFIG_PATHS:
-        if p.exists():
-            with open(p, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-    return {}
+
+_ensure_utf8_stdio()
+
 
 
 def cmd_preview(args):
@@ -84,6 +75,12 @@ def cmd_publish(args):
     print(f"Title: {result.title}")
     print(f"Digest: {result.digest}")
     print(f"Images found: {len(result.images)}")
+
+    # Phase A: warn on unfilled edit anchors before publishing
+    raw_text = Path(args.input).read_text(encoding="utf-8")
+    if ":::anchor" in raw_text:
+        print("Warning: 文章仍包含未填写的编辑锚点（:::anchor 块）。", file=sys.stderr)
+        print("  -> 运行 python3 toolkit/anchor.py check <file> 查看详情；建议先补充个人内容。", file=sys.stderr)
 
     # Get access token
     token = get_access_token(appid, secret)
@@ -365,6 +362,17 @@ function selectTheme(name) {{
 </html>"""
 
 
+def cmd_anchor(args):
+    """Generate or check edit anchors (:::anchor blocks) in a Markdown article."""
+    from anchor import check_anchors, generate_anchors
+
+    if args.action == "generate":
+        generate_anchors(args.input, count=args.count, force=args.force)
+    elif args.action == "check":
+        ok = check_anchors(args.input, as_json=args.json)
+        sys.exit(0 if ok else 1)
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="wewrite",
@@ -407,6 +415,14 @@ def main():
     p_gallery.add_argument("-o", "--output", help="Output HTML file path")
     p_gallery.add_argument("--no-open", action="store_true", help="Don't open browser")
 
+    # anchor (编辑锚点)
+    p_anchor = sub.add_parser("anchor", help="编辑锚点：生成/检查 :::anchor 块")
+    p_anchor.add_argument("action", choices=["generate", "check"])
+    p_anchor.add_argument("input", help="Markdown 文件路径")
+    p_anchor.add_argument("--count", type=int, default=2, help="锚点数量（generate，默认 2）")
+    p_anchor.add_argument("--force", action="store_true", help="generate：先移除已有锚点再重新生成")
+    p_anchor.add_argument("--json", action="store_true", help="check：JSON 输出")
+
     # learn-theme
     p_learn = sub.add_parser("learn-theme", help="Learn formatting theme from a WeChat article URL")
     p_learn.add_argument("url", help="WeChat article URL")
@@ -427,6 +443,8 @@ def main():
             cmd_gallery(args)
         elif args.command == "learn-theme":
             cmd_learn_theme(args)
+        elif args.command == "anchor":
+            cmd_anchor(args)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

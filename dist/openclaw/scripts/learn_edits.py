@@ -32,6 +32,14 @@ from pathlib import Path
 import yaml
 
 SKILL_DIR = Path(__file__).parent.parent
+if str(SKILL_DIR) not in sys.path:
+    sys.path.insert(0, str(SKILL_DIR))
+
+from wewrite_common import load_config, load_history, _ensure_utf8_stdio
+
+
+_ensure_utf8_stdio()
+
 
 # Pattern types with descriptions
 PATTERN_TYPES = {
@@ -76,12 +84,9 @@ def fetch_wechat_draft() -> tuple[str, str, str]:
     Returns (draft_plaintext, final_plaintext, draft_path).
     """
     # Load config
-    config_path = SKILL_DIR / "config.yaml"
-    if not config_path.exists():
+    config = load_config(SKILL_DIR)
+    if not config:
         raise FileNotFoundError("config.yaml not found — need WeChat API credentials")
-
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
 
     wechat = config.get("wechat", {})
     appid = wechat.get("appid", "")
@@ -94,8 +99,7 @@ def fetch_wechat_draft() -> tuple[str, str, str]:
     if not history_path.exists():
         raise FileNotFoundError("history.yaml not found — no articles to compare")
 
-    with open(history_path) as f:
-        history = yaml.safe_load(f) or []
+    history = load_history(SKILL_DIR)
 
     # Find most recent article with media_id
     latest = None

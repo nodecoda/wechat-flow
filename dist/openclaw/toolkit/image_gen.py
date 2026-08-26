@@ -36,24 +36,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
-import yaml
+
+SKILL_ROOT = Path(__file__).resolve().parent.parent
+if str(SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT))
+
+from wewrite_common import load_config as _load_config
 
 # --- Config ---
-
-CONFIG_PATHS = [
-    Path.cwd() / "config.yaml",
-    Path(__file__).parent.parent / "config.yaml",  # skill root
-    Path(__file__).parent / "config.yaml",          # toolkit dir
-    Path.home() / ".config" / "wewrite" / "config.yaml",
-]
-
-
-def _load_config() -> dict:
-    for p in CONFIG_PATHS:
-        if p.exists():
-            with open(p, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-    return {}
 
 
 # --- Size presets ---
