@@ -27,17 +27,10 @@ import sys
 from pathlib import Path
 
 
-DATE_PREFIX_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-")
-
-
-def _entity_stem(markdown_path) -> str:
-    """实体 key：去日期前缀的 slug（与 intent/facts 命名对齐）。"""
-    stem = Path(markdown_path).stem
-    return DATE_PREFIX_RE.sub("", stem)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import _ensure_utf8_stdio, load_output_entity, output_entity_path, save_output_entity  # noqa: E402
+from wewrite_common import _ensure_utf8_stdio, entity_stem, save_output_entity  # noqa: E402
 
 ANCHOR_TYPES = ("experience", "opinion", "story", "data")
 
@@ -102,7 +95,7 @@ def generate_anchors(markdown_path: str, count: int = DEFAULT_COUNT, force: bool
     new_blocks, records = _insert_blocks(blocks, count)
     path.write_text("\n\n".join(new_blocks), encoding="utf-8")
 
-    record_path = save_output_entity(_entity_stem(path), "anchors", {"anchors": records})
+    record_path = save_output_entity(entity_stem(path), "anchors", {"anchors": records})
     print(f"已插入 {len(records)} 个编辑锚点：{path}")
     for r in records:
         print(f"  {r['id']} [{r['type']}] {r['location']}")

@@ -33,7 +33,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import yaml  # noqa: E402
 from wewrite_common import (  # noqa: E402
     _ensure_utf8_stdio,
     load_output_entity,

@@ -14,7 +14,6 @@ Requires: wechat appid/secret in config.yaml (skill root or toolkit dir)
 """
 
 import argparse
-import json
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path

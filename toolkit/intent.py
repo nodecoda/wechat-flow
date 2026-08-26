@@ -36,7 +36,6 @@ import yaml  # noqa: E402
 from wewrite_common import (  # noqa: E402
     _ensure_utf8_stdio,
     ensure_skill_root,
-    load_config,
     load_output_entity,
     output_entity_path,
     save_output_entity,

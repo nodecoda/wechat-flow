@@ -1,4 +1,5 @@
 import copy
+import re
 import sys
 from pathlib import Path
 
@@ -12,6 +13,15 @@ def _ensure_utf8_stdio():
             stream.reconfigure(encoding="utf-8")
         except Exception:
             pass
+
+ENTITY_STEM_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-")
+
+
+def entity_stem(markdown_path) -> str:
+    """实体 key：去日期前缀的 slug（与 intent/facts 命名对齐）。"""
+    stem = Path(markdown_path).stem
+    return ENTITY_STEM_RE.sub("", stem)
+
 
 def ensure_skill_root() -> Path:
     """Return the skill root and guarantee it is importable.
