@@ -1,3 +1,5 @@
+# 完整写作管线（markdown 排版 / 生图 / 发布）。
+# 最小核心见 requirements-min.txt；可选浏览器降级抓取见 requirements-browser.txt。
 markdown>=3.5
 beautifulsoup4>=4.12
 cssutils>=2.9

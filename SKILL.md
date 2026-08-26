@@ -49,7 +49,7 @@ allowed-tools:
   - **本地修改**（默认）：用户在 `output/` 的 markdown 文件中修改
   - **微信草稿箱同步**：`python3 {skill_dir}/scripts/learn_edits.py --from-wechat`，自动从草稿箱拉回最新内容，与本地原文做纯文本 diff
 - 用户说"学习排版"/"学排版" → `python3 {skill_dir}/scripts/learn_theme.py <url> --name <name>`，用户需提供一个公众号文章 URL 和主题名称。提取完成后提示用户设置 `style.yaml` 的 `theme` 字段。
-- 用户说"学习这篇文章"/"导入范文" + URL → `python3 {skill_dir}/scripts/fetch_article.py <url> -o /tmp/article.md && python3 {skill_dir}/scripts/extract_exemplar.py /tmp/article.md -s <账号名>`，从公众号文章 URL 提取正文并导入范文库。支持三级降级（requests → Playwright → 手动 HTML）。
+- 用户说"学习这篇文章"/"导入范文" + URL → `python3 {skill_dir}/scripts/fetch_article.py <url> -o /tmp/article.md && python3 {skill_dir}/scripts/extract_exemplar.py /tmp/article.md -s <账号名>`，从公众号文章 URL 提取正文并导入范文库。支持四级降级（requests → Camoufox → Playwright → 手动 HTML）。
 - 用户说"看看文章数据" → `读取: {skill_dir}/references/effect-review.md`
 - 用户说"检查一下"/"自检"/"这篇文章怎么样" → 生成报告（生成档案 + 质量检查，≤5 条可操作建议）。完整步骤 → `{skill_dir}/references/operations.md#自检报告生成辅助功能`
 - 用户说"更新"/"更新 WeWrite"/"升级" → 在 `{skill_dir}` 执行 `git pull origin master`，完成后告知版本变化
