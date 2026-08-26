@@ -1,5 +1,7 @@
 # wechat-flow
 
+[![Build](https://github.com/nodecoda/wechat-flow/actions/workflows/build-openclaw.yml/badge.svg)](https://github.com/nodecoda/wechat-flow/actions/workflows/build-openclaw.yml)
+
 面向公众号内容生产与自动发布的 Agent 工作流项目。
 
 兼容 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 和 [OpenClaw](https://github.com/anthropics/openclaw) 的 skill 格式。安装后说「写一篇公众号文章」即可触发完整流程。
@@ -46,7 +48,7 @@
 | 视觉 AI | 封面 3 创意 + 内文 3-6 配图 | `toolkit/image_gen.py` |
 | 排版发布 | 16+ 主题 + 微信兼容修复 + 暗黑模式 | `toolkit/cli.py` |
 | 效果复盘 | 微信数据分析 API 回填阅读数据 | `references/effect-review.md` |
-| 范文风格库 | SICO 式 few-shot：从你的文章提取风格指纹，写作时注入 | `scripts/extract_exemplar.py` |
+| 范文风格库 | few-shot 风格注入：从你的文章提取风格指纹（句长节奏/情绪表达/转折方式），写作时注入 | `scripts/extract_exemplar.py` |
 | 风格飞轮 | 学习你的修改，越用越像你 | `references/learn-edits.md` |
 | 排版学习 | 从任意公众号文章 URL 提取排版主题 | `scripts/learn_theme.py` |
 | 文章采集 | 从公众号 URL 提取正文为 Markdown，可导入范文库 | `scripts/fetch_article.py` |
@@ -71,16 +73,16 @@ writing_persona: "midnight-friend"
 
 ## 写作域回路（Phase A-E）
 
-写作不只是"生成一段文字"——WeWrite 把写作过程建模为可核验、可回放、可调优的四段回路，每个环节都有工具与产物落盘在 `output/{slug}-*.yaml`：
+写作不只是「生成一段文字」——WeWrite 把写作过程建模为可核验、可回放、可调优的四段回路，每个环节都有工具与产物落盘在 `output/{slug}-*.yaml`：
 
 | 环节 | 产物 | 工具 | 作用 |
 |------|------|------|------|
 | **立意**（Step 2.5） | `{slug}-intent.yaml` | `toolkit/intent.py` | 选题后先立"要论证的判断"：四形态候选立意 → 三问校验（信息差/可信度/边界）→ 终审定型（`thesis` 非空、status 锁定） |
 | **素材溯源**（Step 3.3） | `{slug}-facts.yaml` | `toolkit/facts.py` | 把"禁止编造"落成可核对清单：采集的真实素材逐条核验为 verified/rejected；写作引用须命中 verified 条目 |
-| **编辑锚点**（Step 4.4） | 文内 `:::anchor` 块 | `toolkit/anchor.py` | 生成 2-3 个待你填写真实内容的锚点（经历/观点/故事/数据），发布前 `check` 确认已填写 |
+| **编辑锚点**（Step 4.4） | `{slug}-anchors.yaml` + 文内 `:::anchor` 块 | `toolkit/anchor.py` | 生成 2-3 个待你填写真实内容的锚点（经历/观点/故事/数据），幂等落盘，发布前 `check` 确认已填写 |
 | **修改复检**（Step 5.4） | `{slug}-revision.yaml` | `toolkit/revision.py` | 四层修改（结构→段落→句子→措辞）+ 参数层建议；`recheck` 证明"改后更好"，`rollback` 防过度修改 |
 
-**参数层五层模型**（revision-guide.md §1.5）：修改按影响面从大到小分五层执行——结构层 → 段落层 → 句子层 → 措辞层 → 参数层。参数层把 `humanness_score` 的 8 个参数（`sentence_variance`/`paragraph_rhythm`/`emotional_arc`/`word_temperature_bias`/`broken_sentence_rate`/`tangent_frequency`/`style_drift`/`negative_emotion_floor`）低分项（<0.65）映射为"问题描述 + 可执行修改动作 + 示例"，形成**评分→修改→复检**闭环；迭代参数沉淀到 `writing-config.yaml`，越用越像你。
+**参数层五层模型**（revision-guide.md §1.5）：修改按影响面从大到小分五层执行——结构层 → 段落层 → 句子层 → 措辞层 → 参数层。参数层把 `humanness_score` 的 8 个检测参数（`sentence_variance`/`paragraph_rhythm`/`emotional_arc`/`word_temperature_bias`/`broken_sentence_rate`/`real_data_density`/`self_correction_rate`/`adverb_max_per_100`）低分项（<0.65）映射为"问题描述 + 可执行修改动作 + 示例"，形成**评分→修改→复检**闭环；迭代参数沉淀到 `writing-config.yaml`，越用越像你。
 
 回环验证：一次完整写作会依次产出 intent → facts → anchors → revision 四类产物，`evals/run_evals.py` 可对这套产物断言回归（`python3 evals/run_evals.py`）。
 
@@ -155,14 +157,14 @@ python3 toolkit/cli.py themes
 **Claude Code**：
 
 ```bash
-git clone --depth 1 https://github.com/oaker-io/wechat-flow.git ~/.claude/skills/wechat-flow
+git clone --depth 1 https://github.com/nodecoda/wechat-flow.git ~/.claude/skills/wechat-flow
 cd ~/.claude/skills/wechat-flow && pip install -r requirements.txt
 ```
 
 **OpenClaw**：
 
 ```bash
-git clone --depth 1 https://github.com/oaker-io/wechat-flow.git ~/.openclaw/skills/wechat-flow
+git clone --depth 1 https://github.com/nodecoda/wechat-flow.git ~/.openclaw/skills/wechat-flow
 cd ~/.openclaw/skills/wechat-flow && pip install -r requirements.txt
 ```
 
@@ -209,9 +211,13 @@ wechat-flow/
 ├── config.example.yaml       # API 配置模板
 ├── style.example.yaml        # 风格配置模板
 ├── writing-config.example.yaml # 写作参数模板
+├── wewrite_common.py          # 共享模块（config/history/写作域实体/UTF-8）
+├── VERSION                    # 版本号（Step 1.2 更新检查用）
 ├── requirements.txt
 │
 ├── dist/openclaw/            # OpenClaw 兼容版（CI 自动构建）
+├── tests/                     # 回归测试（facts/anchor/intent/revision/humanness/param）
+├── evals/                     # 写作域产物断言（evals.json + run_evals.py）
 │
 ├── scripts/                  # 数据采集 + 诊断 + 构建
 │   ├── fetch_hotspots.py       # 多平台热点抓取
@@ -219,8 +225,8 @@ wechat-flow/
 │   ├── fetch_stats.py          # 微信文章数据回填
 │   ├── build_playbook.py       # 从历史文章生成 Playbook
 │   ├── learn_edits.py          # 学习人工修改
-│   ├── humanness_score.py      # 文章质量打分（11 项检测，供自检和 Step 5 使用）
-│   ├── extract_exemplar.py      # 范文风格提取（SICO 式 few-shot 建库）
+│   ├── humanness_score.py      # 文章质量打分（8 检测参数 + 综合分，供自检和 Step 5 使用）
+│   ├── extract_exemplar.py      # 范文风格提取（few-shot 建库）
 │   ├── learn_theme.py           # 从公众号文章 URL 提取排版主题
 │   ├── fetch_article.py         # 从公众号 URL 提取正文为 Markdown
 │   ├── diagnose.py             # 配置完备度检查
@@ -248,6 +254,9 @@ wechat-flow/
 │   ├── style-template.md       # 风格配置字段 + 16 主题列表
 │   ├── exemplar-seeds.yaml     # 通用人类写作模式种子（无范文库时的 fallback）
 │   ├── exemplars/              # 用户范文风格库（自动生成，不入 git）
+│   ├── intent-cards.md         # 立意卡规范（四形态 + 三问校验）
+│   ├── revision-guide.md        # 五层修改模型（含参数层）
+│   ├── operations.md            # 运维细节（错误表/history schema/范本注入/自检报告）
 │   ├── onboard.md              # 首次设置流程
 │   ├── learn-edits.md          # 学习飞轮流程
 │   └── effect-review.md        # 效果复盘流程
@@ -264,13 +273,13 @@ wechat-flow/
 ```
 Step 1  环境检查 + 加载风格（不存在则 Onboard）
   ↓
-Step 2  热点抓取 → 历史去重 + SEO → 选题
+Step 2  热点抓取 → 历史去重 + SEO → 选题（2.5 立意：生成并定型 IntentCard）
   ↓
-Step 3  框架选择 → 素材采集（WebSearch 真实数据）→ 内容增强（按框架类型匹配策略）
+Step 3  框架选择 → 素材采集（WebSearch 真实数据）→ 内容增强（按框架类型匹配策略）→ 3.3 建溯源表（FactSheet）
   ↓
 Step 4  维度随机化 → 范文风格注入 → 写作（内容增强约束 + 真实素材锚定 + 编辑锚点）→ 快速自检
   ↓
-Step 5  SEO 优化 → 质量验证
+Step 5  SEO 优化 → 质量验证（5.4 修改执行 + 改后复检）
   ↓
 Step 6  视觉 AI（封面 + 内文配图）
   ↓
@@ -313,6 +322,19 @@ python3 scripts/humanness_score.py article.md --verbose
 # 从公众号文章学习排版主题
 python3 scripts/learn_theme.py https://mp.weixin.qq.com/s/xxxx --name my-style
 ```
+
+## 回归与开发
+
+```bash
+# 回归测试（零外部依赖，含写作域 6 套用例）
+python3 tests/run_all.py
+
+# 写作域产物断言（对 output/ 下某篇实战产物回归，--slug 指定）
+python3 evals/run_evals.py --slug my-post
+python3 evals/run_evals.py --eval 3 --json   # 只看写作域产物组，JSON 输出
+```
+
+改动后请跑一遍 `tests/run_all.py` 再提交；CI（`build-openclaw.yml`）会在 master 分支自动跑测试并同步 `dist/openclaw/`。
 
 ## License
 
