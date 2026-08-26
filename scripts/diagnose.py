@@ -22,16 +22,7 @@ SKILL_ROOT = Path(__file__).resolve().parent.parent
 if str(SKILL_ROOT) not in sys.path:
     sys.path.insert(0, str(SKILL_ROOT))
 
-from wewrite_common import find_config_path, has_image_config, load_config, load_history
-
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印块字符/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
+from wewrite_common import find_config_path, has_image_config, load_config, load_history, _ensure_utf8_stdio
 
 
 _ensure_utf8_stdio()

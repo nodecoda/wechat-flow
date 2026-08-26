@@ -21,17 +21,8 @@ from converter import WeChatConverter, preview_html
 from theme import load_theme, list_themes
 from wechat_api import get_access_token, upload_image, upload_thumb
 from publisher import create_draft, create_image_post
-from wewrite_common import load_config
+from wewrite_common import load_config, _ensure_utf8_stdio
 
-
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印中文，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
 
 
 _ensure_utf8_stdio()

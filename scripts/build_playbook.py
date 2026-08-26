@@ -20,19 +20,15 @@ import sys
 from pathlib import Path
 
 
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印中文/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
+SKILL_DIR = Path(__file__).resolve().parent.parent
+if str(SKILL_DIR) not in sys.path:
+    sys.path.insert(0, str(SKILL_DIR))
 
+from wewrite_common import _ensure_utf8_stdio  # noqa: E402
 
 _ensure_utf8_stdio()
 
 
-SKILL_DIR = Path(__file__).parent.parent
 
 
 def load_corpus() -> list[dict]:

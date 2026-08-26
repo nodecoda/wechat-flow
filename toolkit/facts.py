@@ -37,6 +37,7 @@ if str(SKILL_ROOT) not in sys.path:
 
 import yaml  # noqa: E402
 from wewrite_common import (  # noqa: E402
+    _ensure_utf8_stdio,
     load_output_entity,
     output_entity_path,
     save_output_entity,
@@ -60,15 +61,6 @@ FACT_PATTERNS = [
 
 TITLE_RE = re.compile(r"^\s*#{1,6}\s")
 LIST_RE = re.compile(r"^\s*(?:[-*]|\d+[.、)])\s*")
-
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印 ✓/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
 
 
 _ensure_utf8_stdio()

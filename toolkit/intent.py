@@ -36,6 +36,7 @@ if str(SKILL_ROOT) not in sys.path:
 
 import yaml  # noqa: E402
 from wewrite_common import (  # noqa: E402
+    _ensure_utf8_stdio,
     load_config,
     load_output_entity,
     output_entity_path,
@@ -45,15 +46,6 @@ from wewrite_common import (  # noqa: E402
 ANGLES = ("反转", "升维", "预测", "筛选")
 
 TITLE_LIMIT = 28  # 微信标题最佳长度上限（中文字）
-
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印 ✓/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
 
 
 _ensure_utf8_stdio()
@@ -409,6 +401,9 @@ def main():
             set_status(args.card, "locked")
         elif args.command == "show":
             show(args.card, as_json=args.json)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(2)  # 输入缺失（降级路径），区别于校验失败 exit1
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

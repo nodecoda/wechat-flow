@@ -25,16 +25,7 @@ SKILL_DIR = Path(__file__).parent.parent
 if str(SKILL_DIR) not in sys.path:
     sys.path.insert(0, str(SKILL_DIR))
 
-from wewrite_common import load_config, load_history, save_history
-
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印中文/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
+from wewrite_common import load_config, load_history, save_history, _ensure_utf8_stdio
 
 
 _ensure_utf8_stdio()

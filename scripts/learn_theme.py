@@ -15,22 +15,13 @@ from pathlib import Path
 import yaml
 from bs4 import BeautifulSoup
 
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印中文/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
-
-
-_ensure_utf8_stdio()
-
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+from wewrite_common import _ensure_utf8_stdio  # noqa: E402
+
+_ensure_utf8_stdio()
 
 # ---------------------------------------------------------------------------
 # 1. Color utilities

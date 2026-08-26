@@ -8,24 +8,18 @@ Usage:
 """
 
 import argparse
+import sys
 import re
 import shutil
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印中文/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
-
+from wewrite_common import _ensure_utf8_stdio  # noqa: E402
 
 _ensure_utf8_stdio()
-
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Directories to copy alongside SKILL.md
 COPY_DIRS = ["references", "scripts", "toolkit", "personas"]
@@ -36,6 +30,7 @@ COPY_FILES = [
     "config.example.yaml",
     "style.example.yaml",
     "writing-config.example.yaml",
+    "wewrite_common.py",
     "VERSION",
 ]
 

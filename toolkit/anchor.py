@@ -39,7 +39,7 @@ SKILL_ROOT = Path(__file__).resolve().parent.parent
 if str(SKILL_ROOT) not in sys.path:
     sys.path.insert(0, str(SKILL_ROOT))
 
-from wewrite_common import load_output_entity, output_entity_path, save_output_entity
+from wewrite_common import load_output_entity, output_entity_path, save_output_entity, _ensure_utf8_stdio
 
 ANCHOR_TYPES = ("experience", "opinion", "story", "data")
 
@@ -53,15 +53,6 @@ ANCHOR_PROMPTS = {
 ANCHOR_RE = re.compile(r":::anchor\s+(\w+)\n(.*?)\n:::", re.DOTALL)
 
 PLACEHOLDER_MARK = "在这里加一句你自己的话"  # generate 写入的占位提示，用户填写后应被替换
-
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印 ✓/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
 
 
 _ensure_utf8_stdio()

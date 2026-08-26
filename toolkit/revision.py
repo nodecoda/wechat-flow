@@ -42,16 +42,7 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 import humanness_score as hs  # noqa: E402
-from wewrite_common import load_output_entity, output_entity_path, save_output_entity  # noqa: E402
-
-
-def _ensure_utf8_stdio():
-    """Windows GBK 控制台无法打印 •/✓/emoji，强制 stdout/stderr 走 UTF-8。"""
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
+from wewrite_common import _ensure_utf8_stdio, load_output_entity, output_entity_path, save_output_entity  # noqa: E402
 
 
 _ensure_utf8_stdio()
