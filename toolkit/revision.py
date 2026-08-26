@@ -365,6 +365,90 @@ def check_structure(text: str, intent: dict | None) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+PARAM_THRESHOLD = 0.65  # 参数分低于此值生成修改建议（0=差, 1=好）
+
+# 参数层（第五层）：humanness 检测指标 → 可执行修改建议
+# 打通"评分"与"修改"：Score 只告诉你哪里低，这里告诉你具体怎么改。
+PARAM_FIXES = {
+    "negative_emotion_floor": {
+        "issue": "负面情绪占比不足",
+        "fix": "负面句占比目标 ≥20%（检测器按句命中词表）。在吐槽/质疑/担忧处加入负面表达，"
+               "可用词：失望、坑、忽悠、套路、离谱、不靠谱、受够了、没戏、凉了、白搭、割韭菜、画大饼、扯",
+        "example": "「说实话，这块我挺担忧的。」/「这套路我熟，跟减肥药广告一个路子。」",
+    },
+    "sentence_variance": {
+        "issue": "句长方差不足（AI 句长均匀）",
+        "fix": "插入 1-5 字超短句（「嗯。」「就这？」「悬着。」），且紧邻 40+ 字长句制造落差；"
+               "避免连续 3 句相近长度（±5 字）",
+        "example": "「就这？嗯。没那么简单。」",
+    },
+    "word_temperature_bias": {
+        "issue": "词汇温度带不足（冷/温/热/野需 ≥3 带）",
+        "fix": "同一段混搭四温度：冷=信息不对称、结构性、护城河；温=说实话、说白了、懂的都懂；"
+               "热=卷、破防、格局打开；野=整挺好、瞎折腾、扯",
+        "example": "「这种信息不对称，八成是普通人买单。」",
+    },
+    "paragraph_rhythm": {
+        "issue": "段落节奏平（连续相近长度段落）",
+        "fix": "穿插 1 句短段（强调/转折/吐槽）；长段 ≤150 字；禁止连续 2 段长度 ±20 字相近",
+        "example": "长段后接「但你先别急着点赞。」",
+    },
+    "broken_sentence_rate": {
+        "issue": "破句/不完整句不足",
+        "fix": "加入破句结构：自我纠正、破折号中断（「这个落差——」）、独立超短句、反问独句",
+        "example": "「不对，准确说是等保险公司先想明白。」",
+    },
+    "self_correction_rate": {
+        "issue": "自我纠正/插入语不足",
+        "fix": "加入 1-2 处自我纠正或插入语（「不对」「准确说」「——注意，是 X，不是 Y」）",
+        "example": "「——注意，是行政违法责任，不是事故赔偿责任。」",
+    },
+    "adverb_density": {
+        "issue": "副词密度过高",
+        "fix": "每 100 字副词 ≤3 个；用具体描述替代副词（「非常快地增长」→「三个月翻了一番」）",
+        "example": "把「非常/十分/特别」换成具体数字或场景",
+    },
+    "real_data_density": {
+        "issue": "真实数据/来源引用不足",
+        "fix": "每 H2 段嵌入真实素材（数字/具名来源），用「据…数据/报告」句式；素材须命中 FactSheet",
+        "example": "「据公开数据显示，渗透率已达 70.5%。」（跑 facts.py check-refs 验证）",
+    },
+}
+
+
+def check_params(scored: dict) -> list[dict]:
+    """参数层：humanness 低分指标 → 可执行修改建议（评分与修改的桥梁）。
+
+    同一参数可能由多个检测项（如 sentence_variance = stddev + range）构成，
+    按参数聚合、取最低分项，避免重复建议。
+    """
+    worst: dict[str, dict] = {}
+    for tier_name in ("tier1", "tier2"):
+        tier = scored.get(tier_name, {})
+        for name, data in tier.items():
+            if name.startswith("_"):
+                continue
+            param = data.get("param")
+            if not param or param not in PARAM_FIXES:
+                continue
+            if data["score"] >= PARAM_THRESHOLD:
+                continue
+            if param not in worst or data["score"] < worst[param]["score"]:
+                worst[param] = {
+                    "name": name, "score": data["score"], "detail": data.get("detail", "")}
+    findings = []
+    for param, w in sorted(worst.items()):
+        info = PARAM_FIXES[param]
+        findings.append(_finding(
+            "param",
+            f"{param} ({w['score']:.2f})",
+            f"{info['issue']}：{w['detail']}",
+            f"{info['fix']} 示例：{info['example']}",
+            "high" if w["score"] < 0.4 else "medium"))
+    return findings
+
+
+# ---------------------------------------------------------------------------
 # 金句候选（报告）
 # ---------------------------------------------------------------------------
 
@@ -396,16 +480,17 @@ def analyze(markdown_path: str, intent_path: str | None = None, as_json: bool = 
                 stem = stem[: -len("-intent")]
             intent = load_output_entity(stem, "intent")
 
+    # baseline（复检基准）：humanness composite（0=人味高, 100=问题多）
+    # 先评分，参数层检查（第五层）直接消费评分结果
+    scored = hs.score_article(text)
     findings = (
         check_structure(text, intent) +
         check_paragraphs(text) +
         check_sentences(text) +
-        check_wording(text)
+        check_wording(text) +
+        check_params(scored)
     )
     golden = find_golden_sentence_candidates(text)
-
-    # baseline（复检基准）：humanness composite（0=人味高, 100=问题多）
-    scored = hs.score_article(text)
     baseline = {
         "humanness": scored["composite_score"],
         "param_scores": {k: v for k, v in scored["param_scores"].items() if k in (
@@ -416,7 +501,7 @@ def analyze(markdown_path: str, intent_path: str | None = None, as_json: bool = 
 
     report = {
         "baseline": baseline,
-        "layers": {"structure": [], "paragraph": [], "sentence": [], "wording": []},
+        "layers": {"structure": [], "paragraph": [], "sentence": [], "wording": [], "param": []},
         "golden_sentences": golden,
         "after": {},
     }
@@ -443,7 +528,7 @@ def _print_report(report: dict, stem: str) -> None:
             print(f"  • {g}")
     else:
         print("金句候选：无（建议补 1-2 句可截图转发的句子）")
-    for layer, name, arrow in [("structure", "结构层", ">>>"), ("paragraph", "段落层", ">>"), ("sentence", "句子层", ">"), ("wording", "措辞层", "")]:
+    for layer, name, arrow in [("param", "参数层", "="), ("structure", "结构层", ">>>"), ("paragraph", "段落层", ">>"), ("sentence", "句子层", ">"), ("wording", "措辞层", "")]:
         items = report["layers"].get(layer, [])
         if not items:
             continue
