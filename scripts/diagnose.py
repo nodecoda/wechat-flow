@@ -20,7 +20,17 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from ncoda_common import ensure_skill_root, find_config_path, has_image_config, load_config, load_history, _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import (  # noqa: E402
+    _ensure_utf8_stdio,
+    ensure_skill_root,
+    find_config_path,
+    find_style_path,
+    get_wechat_account,
+    has_image_config,
+    load_config,
+    load_history,
+    wechat_account_names,
+)
 
 
 SKILL_ROOT = ensure_skill_root()
@@ -112,12 +122,23 @@ def check_config():
 
     cfg = load_config(SKILL_ROOT)
 
-    # WeChat credentials
+    # WeChat credentials（支持多账号：任一完整账号即可）
     wechat = cfg.get("wechat", {})
-    if wechat.get("appid") and wechat.get("secret"):
-        checks.append(make_check("config", "wechat_credentials", "pass", "configured"))
+    account = get_wechat_account(cfg)
+    if account is not None:
+        checks.append(make_check("config", "wechat_credentials", "pass", f"configured ({account.get('name')})"))
     else:
-        checks.append(make_check("config", "wechat_credentials", "warn", "missing appid/secret", impact="skip_publish"))
+        names = wechat_account_names(cfg)
+        detail = f"missing/不完整（可用账号: {', '.join(names)}）" if names else "missing appid/secret"
+        checks.append(make_check("config", "wechat_credentials", "warn", detail, impact="skip_publish"))
+
+    # 多账号列表（信息项，不阻断）
+    account_names = wechat_account_names(cfg)
+    if account_names:
+        checks.append(make_check(
+            "config", "wechat_accounts", "pass",
+            f"{len(account_names)} 个: {', '.join(account_names)}",
+        ))
 
     if has_image_config(cfg):
         checks.append(make_check("config", "image_api_key", "pass", "configured via api_key or providers"))
@@ -130,13 +151,13 @@ def check_config():
 def check_style():
     """Group 3: Check style.yaml and persona configuration."""
     checks = []
-    style_path = SKILL_ROOT / "style.yaml"
+    style_path = find_style_path(SKILL_ROOT)
 
-    if not style_path.exists():
+    if style_path is None:
         checks.append(make_check("style", "style_file", "fail", "not found → run onboard first"))
         return checks
 
-    checks.append(make_check("style", "style_file", "pass", "found"))
+    checks.append(make_check("style", "style_file", "pass", f"found at {style_path}"))
 
     with open(style_path, "r", encoding="utf-8") as f:
         style = yaml.safe_load(f) or {}

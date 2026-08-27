@@ -19,7 +19,13 @@ from converter import WeChatConverter, preview_html
 from theme import load_theme, list_themes
 from wechat_api import get_access_token, upload_image, upload_thumb
 from publisher import create_draft, create_image_post
-from ncoda_common import load_config, _ensure_utf8_stdio
+from ncoda_common import (
+    _ensure_utf8_stdio,
+    get_wechat_account,
+    list_wechat_accounts,
+    load_config,
+    wechat_account_names,
+)
 
 
 
@@ -56,14 +62,22 @@ def cmd_publish(args):
     cfg = load_config()
     wechat_cfg = cfg.get("wechat", {})
 
-    # Resolve from CLI args → config.yaml fallback
-    appid = args.appid or wechat_cfg.get("appid")
-    secret = args.secret or wechat_cfg.get("secret")
+    # Resolve account: --account <name> → wechat.accounts；否则默认账号（default/accounts 首项/旧字段）
+    account = get_wechat_account(cfg, args.account)
+    if args.account and account is None:
+        names = wechat_account_names(cfg)
+        print(f"Error: wechat 账号 '{args.account}' 未找到或未配置完整。可用账号: {', '.join(names) or '（无）'}", file=sys.stderr)
+        sys.exit(1)
+
+    # CLI 显式参数 > 账号配置 > 旧字段
+    appid = args.appid or (account or {}).get("appid") or wechat_cfg.get("appid")
+    secret = args.secret or (account or {}).get("secret") or wechat_cfg.get("secret")
     theme_name = args.theme or cfg.get("theme", "professional-clean")
-    author = args.author or wechat_cfg.get("author")
+    author = args.author or (account or {}).get("author") or wechat_cfg.get("author")
 
     if not appid or not secret:
-        print("Error: --appid and --secret required (or set in config.yaml)", file=sys.stderr)
+        names = wechat_account_names(cfg) or ["default"]
+        print(f"Error: --appid 和 --secret 必填（或 config.yaml 配置账号；可用: {', '.join(names)}）", file=sys.stderr)
         sys.exit(1)
 
     theme = load_theme(theme_name)
@@ -129,6 +143,29 @@ def cmd_publish(args):
     print(f"\nDraft created! media_id: {draft.media_id}")
 
 
+def cmd_accounts(args):
+    """列出已配置的微信公众号（--account 可选值）。"""
+    cfg = load_config()
+    wechat_cfg = cfg.get("wechat", {})
+    if not isinstance(wechat_cfg, dict):
+        wechat_cfg = {}
+    accounts = list_wechat_accounts(cfg)
+    if not accounts:
+        if wechat_cfg.get("appid") and wechat_cfg.get("secret"):
+            appid = str(wechat_cfg["appid"])
+            masked = appid[:6] + "..." + appid[-4:] if len(appid) > 10 else appid
+            print(f"  default: {masked}（旧字段 wechat.appid/secret）")
+            return
+        print("  （未配置公众号。请在 config.yaml 的 wechat 段配置 appid/secret 或 accounts 列表）")
+        return
+    default_name = wechat_cfg.get("default")
+    for acc in accounts:
+        appid = str(acc.get("appid", ""))
+        masked = appid[:6] + "..." + appid[-4:] if len(appid) > 10 else (appid or "（未填）")
+        marker = "  (默认)" if acc.get("name") == default_name else ""
+        print(f"  {acc.get('name')}: {masked}{marker}")
+
+
 def cmd_themes(args):
     """List available themes."""
     names = list_themes()
@@ -142,11 +179,18 @@ def cmd_image_post(args):
     cfg = load_config()
     wechat_cfg = cfg.get("wechat", {})
 
-    appid = args.appid or wechat_cfg.get("appid")
-    secret = args.secret or wechat_cfg.get("secret")
+    account = get_wechat_account(cfg, args.account)
+    if args.account and account is None:
+        names = wechat_account_names(cfg)
+        print(f"Error: wechat 账号 '{args.account}' 未找到或未配置完整。可用账号: {', '.join(names) or '（无）'}", file=sys.stderr)
+        sys.exit(1)
+
+    appid = args.appid or (account or {}).get("appid") or wechat_cfg.get("appid")
+    secret = args.secret or (account or {}).get("secret") or wechat_cfg.get("secret")
 
     if not appid or not secret:
-        print("Error: --appid and --secret required (or set in config.yaml)", file=sys.stderr)
+        names = wechat_account_names(cfg) or ["default"]
+        print(f"Error: --appid 和 --secret 必填（或 config.yaml 配置账号；可用: {', '.join(names)}）", file=sys.stderr)
         sys.exit(1)
 
     images = args.images
@@ -389,6 +433,7 @@ def main():
     p_publish = sub.add_parser("publish", help="Convert and publish as WeChat draft")
     p_publish.add_argument("input", help="Markdown file path")
     p_publish.add_argument("-t", "--theme", default=None, help="Theme name")
+    p_publish.add_argument("--account", default=None, help="目标公众号名（config.yaml wechat.accounts 中的 name；缺省用默认账号）")
     p_publish.add_argument("--appid", default=None, help="WeChat AppID (or set in config.yaml)")
     p_publish.add_argument("--secret", default=None, help="WeChat AppSecret (or set in config.yaml)")
     p_publish.add_argument("--cover", help="Cover image file path")
@@ -399,11 +444,15 @@ def main():
     # themes
     sub.add_parser("themes", help="List available themes")
 
+    # accounts
+    sub.add_parser("accounts", help="List configured WeChat accounts")
+
     # image-post (小绿书)
     p_imgpost = sub.add_parser("image-post", help="Create WeChat image post (小绿书)")
     p_imgpost.add_argument("images", nargs="+", help="Image file paths (1-20, first = cover)")
     p_imgpost.add_argument("-t", "--title", required=True, help="Post title (max 32 chars)")
     p_imgpost.add_argument("-c", "--content", default="", help="Plain text description (max ~1000 chars)")
+    p_imgpost.add_argument("--account", default=None, help="目标公众号名（config.yaml wechat.accounts 中的 name；缺省用默认账号）")
     p_imgpost.add_argument("--appid", default=None, help="WeChat AppID")
     p_imgpost.add_argument("--secret", default=None, help="WeChat AppSecret")
 
@@ -435,6 +484,8 @@ def main():
             cmd_publish(args)
         elif args.command == "themes":
             cmd_themes(args)
+        elif args.command == "accounts":
+            cmd_accounts(args)
         elif args.command == "image-post":
             cmd_image_post(args)
         elif args.command == "gallery":

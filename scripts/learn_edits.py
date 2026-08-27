@@ -33,7 +33,13 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from ncoda_common import ensure_skill_root, load_config, load_history, _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import (  # noqa: E402
+    _ensure_utf8_stdio,
+    ensure_skill_root,
+    get_wechat_account,
+    load_config,
+    load_history,
+)
 
 
 SKILL_DIR = ensure_skill_root()
@@ -77,7 +83,7 @@ def markdown_to_plaintext(md: str) -> str:
     return text.strip()
 
 
-def fetch_wechat_draft() -> tuple[str, str, str]:
+def fetch_wechat_draft(account_name: str | None = None) -> tuple[str, str, str]:
     """
     Fetch the latest draft from WeChat and find the corresponding local file.
     Returns (draft_plaintext, final_plaintext, draft_path).
@@ -87,11 +93,11 @@ def fetch_wechat_draft() -> tuple[str, str, str]:
     if not config:
         raise FileNotFoundError("config.yaml not found — need WeChat API credentials")
 
-    wechat = config.get("wechat", {})
-    appid = wechat.get("appid", "")
-    secret = wechat.get("secret", "")
-    if not appid or not secret:
-        raise ValueError("config.yaml missing wechat.appid or wechat.secret")
+    account = get_wechat_account(config, account_name)
+    if account is None:
+        raise ValueError("config.yaml 缺少完整微信账号（wechat.appid/secret 或 accounts 任一完整配置）")
+    appid = account["appid"]
+    secret = account["secret"]
 
     # Load history to find latest article with media_id
     history_path = SKILL_DIR / "history.yaml"
@@ -399,6 +405,8 @@ def main():
     parser.add_argument("--final", help="Path to human-edited final")
     parser.add_argument("--from-wechat", action="store_true",
                         help="Auto-fetch edited version from WeChat draft box")
+    parser.add_argument("--account", default=None,
+                        help="目标公众号名（config.yaml wechat.accounts 中的 name；缺省用默认账号）")
     parser.add_argument("--summarize", action="store_true", help="Summarize all lessons")
     parser.add_argument("--json", action="store_true", help="JSON output (with --summarize)")
     args = parser.parse_args()
@@ -408,7 +416,7 @@ def main():
         return
 
     if args.from_wechat:
-        local_text, wechat_text, draft_path = fetch_wechat_draft()
+        local_text, wechat_text, draft_path = fetch_wechat_draft(args.account)
         if local_text == wechat_text:
             print("\n微信草稿与本地文件内容一致，没有修改。")
             return

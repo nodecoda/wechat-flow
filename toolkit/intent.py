@@ -37,6 +37,7 @@ from ncoda_common import (  # noqa: E402
     _ensure_utf8_stdio,
     ensure_skill_root,
     load_output_entity,
+    load_style,
     output_entity_path,
     save_output_entity,
 )
@@ -107,18 +108,16 @@ def scaffold(slug: str, topic: str, facts_path: str | None = None) -> Path:
 # ---------------------------------------------------------------------------
 
 def _load_style_blacklist() -> list[str]:
-    """从 style.yaml 读取黑名单（words + topics）。"""
-    style_path = SKILL_ROOT / "style.yaml"
+    """从 style.yaml 读取黑名单（words + topics），本地（cwd）优先。"""
+    data = load_style(SKILL_ROOT)
     words: list[str] = []
-    if style_path.exists():
-        data = load_yaml_safe(style_path)
-        if isinstance(data, dict):
-            bl = data.get("blacklist", {})
-            if isinstance(bl, dict):
-                for key in ("words", "topics"):
-                    val = bl.get(key, [])
-                    if isinstance(val, list):
-                        words.extend(str(w) for w in val)
+    if isinstance(data, dict):
+        bl = data.get("blacklist", {})
+        if isinstance(bl, dict):
+            for key in ("words", "topics"):
+                val = bl.get(key, [])
+                if isinstance(val, list):
+                    words.extend(str(w) for w in val)
     return words
 
 

@@ -47,6 +47,28 @@ if mx:
     s2, _ = dg.compute_summary(full)
     check("全绿 → anti_ai_level=HIGH", s2["anti_ai_level"] == "HIGH", s2["anti_ai_level"])
 
+# ---- check_config：多账号配置 → pass + wechat_accounts 信息项 ----
+import tempfile, os
+tmp2 = tempfile.mkdtemp(prefix="diag_acc_")
+old_cwd = os.getcwd()
+try:
+    os.chdir(tmp2)
+    Path(tmp2, "config.yaml").write_text(
+        "wechat:\n  default: main\n  accounts:\n"
+        "    - name: main\n      appid: wx123\n      secret: s1\n"
+        "    - name: sub\n      appid: wx456\n      secret: s2\n",
+        encoding="utf-8",
+    )
+    acc_checks = dg.check_config()
+    cw = next((c for c in acc_checks if c["name"] == "wechat_credentials"), None)
+    check("多账号 → wechat_credentials pass", cw is not None and cw["status"] == "pass", str(cw))
+    ca = next((c for c in acc_checks if c["name"] == "wechat_accounts"), None)
+    check("多账号 → wechat_accounts 信息项", ca is not None and ca["status"] == "pass", str(ca))
+finally:
+    os.chdir(old_cwd)
+    import shutil
+    shutil.rmtree(tmp2, ignore_errors=True)
+
 # ---- run_all_checks 在空仓库目录 ----
 import tempfile, os
 tmp = tempfile.mkdtemp(prefix="diag_")

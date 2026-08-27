@@ -22,7 +22,14 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from ncoda_common import ensure_skill_root, load_config, load_history, save_history, _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import (  # noqa: E402
+    _ensure_utf8_stdio,
+    ensure_skill_root,
+    get_wechat_account,
+    load_config,
+    load_history,
+    save_history,
+)
 
 
 SKILL_DIR = ensure_skill_root()
@@ -125,16 +132,17 @@ def update_history(stats_list: list[dict]):
 def main():
     parser = argparse.ArgumentParser(description="Fetch WeChat article stats")
     parser.add_argument("--days", type=int, default=3, help="Days to look back")
+    parser.add_argument("--account", default=None,
+                        help="目标公众号名（config.yaml wechat.accounts 中的 name；缺省用默认账号）")
     args = parser.parse_args()
 
     cfg = load_config(SKILL_DIR)
-    wechat_cfg = cfg.get("wechat", {})
-    appid = wechat_cfg.get("appid")
-    secret = wechat_cfg.get("secret")
-
-    if not appid or not secret:
-        print("Error: wechat appid/secret not found in config.yaml", file=sys.stderr)
+    account = get_wechat_account(cfg, args.account)
+    if account is None:
+        print("Error: 未找到可用的微信账号（config.yaml wechat.appid/secret 或 accounts 任一完整配置）", file=sys.stderr)
         sys.exit(1)
+    appid = account["appid"]
+    secret = account["secret"]
 
     token = _get_access_token(appid, secret)
     print(f"Fetching stats for last {args.days} days...")

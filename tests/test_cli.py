@@ -32,13 +32,22 @@ def run(*args):
 # ---- --help ----
 r = run("--help")
 check("--help exit0", r.returncode == 0)
-for sub in ("preview", "publish", "themes", "image-post", "gallery", "anchor", "learn-theme"):
+for sub in ("preview", "publish", "themes", "accounts", "image-post", "gallery", "anchor", "learn-theme"):
     check(f"--help 含子命令 {sub}", sub in r.stdout)
 
 # ---- themes ----
 r = run("themes")
 check("themes exit0", r.returncode == 0)
 check("themes 含 professional-clean", "professional-clean" in r.stdout)
+
+# ---- accounts（仓库根无 config → 未配置提示，exit 0）----
+r = run("accounts")
+check("accounts exit0", r.returncode == 0, f"exit={r.returncode} {r.stderr[-120:]}")
+check("accounts 含未配置提示", "未配置公众号" in r.stdout or "default" in r.stdout, r.stdout[-120:])
+
+# ---- publish --account 参数存在 ----
+r = run("publish", "--help")
+check("publish --help 含 --account", "--account" in r.stdout)
 
 # ---- preview --no-open ----
 tmp = tempfile.mkdtemp(prefix="cli_")
