@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CLI entry point for WeWrite.
+CLI entry point for NCoda.
 
 Usage:
     python cli.py preview article.md --theme professional-clean
@@ -19,7 +19,7 @@ from converter import WeChatConverter, preview_html
 from theme import load_theme, list_themes
 from wechat_api import get_access_token, upload_image, upload_thumb
 from publisher import create_draft, create_image_post
-from wewrite_common import load_config, _ensure_utf8_stdio
+from ncoda_common import load_config, _ensure_utf8_stdio
 
 
 
@@ -219,7 +219,7 @@ def cmd_gallery(args):
 
     # Build gallery HTML
     gallery_html = _build_gallery_html(results, names)
-    output = args.output or "/tmp/wewrite-gallery.html"
+    output = args.output or "/tmp/ncoda-gallery.html"
     Path(output).write_text(gallery_html, encoding="utf-8")
     print(f"Gallery: {output} ({len(names)} themes)")
 
@@ -241,7 +241,7 @@ def _gallery_sample_markdown():
 
 ## 第一部分
 
-这是一段正常的文章内容，用来展示不同主题的排版效果。WeWrite 支持多种排版主题，每种都有独特的视觉风格。
+这是一段正常的文章内容，用来展示不同主题的排版效果。NCoda 支持多种排版主题，每种都有独特的视觉风格。
 
 说实话，选主题这件事——看截图永远不如看实际渲染效果。
 
@@ -257,7 +257,7 @@ def _gallery_sample_markdown():
 
 ```python
 def hello():
-    print("Hello, WeWrite!")
+    print("Hello, NCoda!")
 ```
 
 > 好的排版不是让读者注意到设计，而是让读者忘记设计，只记住内容。
@@ -307,7 +307,7 @@ def _build_gallery_html(results, names):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WeWrite 主题画廊</title>
+<title>NCoda 主题画廊</title>
 <style>
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f0f0f; color: #fff; }}
@@ -328,7 +328,7 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
 </head>
 <body>
 <div class="header">
-  <h1>WeWrite 主题画廊</h1>
+  <h1>NCoda 主题画廊</h1>
   <p>{len(names)} 个主题 · 点击卡片查看大图 · 点击「复制 HTML」直接粘贴到公众号编辑器</p>
 </div>
 <div class="grid">
@@ -350,7 +350,7 @@ function copyHTML(name) {{
   }}
 }}
 function selectTheme(name) {{
-  localStorage.setItem('wewrite-theme', name);
+  localStorage.setItem('ncoda-theme', name);
   // Scroll to card for visual feedback
   const el = document.getElementById('preview-' + name);
   if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
@@ -373,7 +373,7 @@ def cmd_anchor(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="wewrite",
+        prog="ncoda",
         description="Markdown to WeChat HTML converter and publisher",
     )
     sub = parser.add_subparsers(dest="command", required=True)

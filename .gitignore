@@ -7,6 +7,9 @@ history.yaml
 playbook.md
 corpus/
 lessons/
+.omx/
+.codex/
+AGENTS.md
 
 # Optimized writing parameters (user runs loop to generate their own)
 writing-config.yaml
@@ -52,3 +55,6 @@ htmlcov/
 # Virtualenv / local env
 .venv/
 .env
+
+# OMX runtime state
+.omx/

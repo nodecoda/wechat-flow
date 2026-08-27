@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Intent (立意) tooling for WeWrite (Phase C).
+Intent (立意) tooling for NCoda (Phase C).
 
 立意是文章的 DNA：一句话核心判断 + 信息差 + 证据 + 边界。
 本模块是"立意脚手架"（人机协作）——机器做可判定部分，观点终审留给人：
@@ -33,7 +33,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import yaml  # noqa: E402
-from wewrite_common import (  # noqa: E402
+from ncoda_common import (  # noqa: E402
     _ensure_utf8_stdio,
     ensure_skill_root,
     load_output_entity,
@@ -361,7 +361,7 @@ def show(card_path: str, as_json: bool = False) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="intent", description="WeWrite 立意脚手架（人机协作）")
+    parser = argparse.ArgumentParser(prog="intent", description="NCoda 立意脚手架（人机协作）")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_sc = sub.add_parser("scaffold", help="生成空 IntentCard（有 FactSheet 时预填证据）")

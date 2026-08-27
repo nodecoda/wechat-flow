@@ -1,5 +1,5 @@
 ---
-name: wewrite
+name: ncoda
 description: |
   微信公众号内容全流程助手：热点抓取 → 选题 → 框架 → 内容增强 → 写作 → SEO → 视觉AI → 排版推送草稿箱。
   触发关键词：公众号、推文、微信文章、微信推文、草稿箱、微信排版、选题、热搜、
@@ -19,7 +19,7 @@ allowed-tools:
   - WebFetch
 ---
 
-# WeWrite — 公众号文章全流程
+# NCoda — 公众号文章全流程
 
 ## 行为声明
 
@@ -39,7 +39,7 @@ allowed-tools:
 - **BLOCKED** — 关键步骤无法继续（如 Python 依赖缺失且用户拒绝安装）
 - **NEEDS_CONTEXT** — 需要用户提供信息才能继续（如首次设置需要公众号名称）
 
-**路径约定**：本文档中 `{skill_dir}` 指本 SKILL.md 所在的目录（即 WeWrite 的根目录）。
+**路径约定**：本文档中 `{skill_dir}` 指本 SKILL.md 所在的目录（即 NCoda 的根目录）。
 
 **Onboard 例外**：Onboard 是交互式的（需要问用户问题），不受"全自动"约束。Onboard 完成后回到全自动管道。
 
@@ -54,7 +54,7 @@ allowed-tools:
    支持四级降级（requests → Camoufox → Playwright → 手动 HTML）。
 - 用户说"看看文章数据" → `读取: {skill_dir}/references/effect-review.md`
 - 用户说"检查一下"/"自检"/"这篇文章怎么样" → 生成报告（生成档案 + 质量检查，≤5 条可操作建议）。完整步骤 → `{skill_dir}/references/operations.md#自检报告生成辅助功能`
-- 用户说"更新"/"更新 WeWrite"/"升级" → 在 `{skill_dir}` 执行 `git pull origin master`，完成后告知版本变化
+- 用户说"更新"/"更新 NCoda"/"升级" → 在 `{skill_dir}` 执行 `git pull origin master`，完成后告知版本变化
 
 ---
 
@@ -84,7 +84,7 @@ cd {skill_dir} && git fetch origin master --quiet 2>/dev/null
 
 比对本地 `{skill_dir}/VERSION` 与远程 `git show origin/master:VERSION`：
 - 相同 → 静默通过
-- 不同 → 提示用户："WeWrite 有新版本可用（当前 X → 最新 Y），说「更新」即可升级。"**不阻断流程**，继续 1.3
+- 不同 → 提示用户："NCoda 有新版本可用（当前 X → 最新 Y），说「更新」即可升级。"**不阻断流程**，继续 1.3
 - git 不可用（无 .git 目录或 fetch 失败）→ 静默跳过
 
 **1.3 加载风格**：
@@ -319,7 +319,7 @@ python3 {skill_dir}/toolkit/cli.py preview {markdown} --theme {theme} --no-open 
 **8.2 回复用户**：
 
 - 最终标题 + 2 备选 + 摘要 + 5 标签 + media_id
-- 编辑建议："文章有 2-3 个编辑锚点，建议加入你自己的话。你可以在本地 markdown 里改，也可以直接在微信草稿箱改——改完后说**'学习我的修改'**，WeWrite 都能学到你的风格。"
+- 编辑建议："文章有 2-3 个编辑锚点，建议加入你自己的话。你可以在本地 markdown 里改，也可以直接在微信草稿箱改——改完后说**'学习我的修改'**，NCoda 都能学到你的风格。"
 
 **8.3 后续操作**：操作速查表（润色/换肤/重写/换题/画廊/换主题/看数据/学修改/学排版/导入范文/查范本库） → `{skill_dir}/references/operations.md#后续操作速查step-83`
 ---

@@ -1,8 +1,8 @@
-# WeWrite —— 公众号写作工作流 skill 的工程元数据。
+# NCoda —— 公众号写作工作流 skill 的工程元数据。
 # 本项目以 requirements*.txt 作为安装来源（skill 形态，非 pip 包），
 # 此处仅声明最低 Python 版本与元数据，供工具链 / CI 识别。
 [project]
-name = "wechat-flow"
+name = "ncoda"
 version = "1.4.0"  # 与根目录 VERSION 文件保持同步
 description = "微信公众号内容生产与自动发布的 Agent 写作工作流（skill 形态：SKILL.md + scripts/ + toolkit/）"
 readme = "README.md"

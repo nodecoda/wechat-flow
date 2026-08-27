@@ -1,4 +1,4 @@
-# WeWrite 运维细节（operations）
+# NCoda 运维细节（operations）
 
 > 本文件收纳 SKILL.md 外移的「条件性细节」：错误处理总表、history.yaml schema、范文注入模板、质量验证标准、辅助功能速查。主流程步骤仍在 SKILL.md，各节下方有回链。
 
@@ -199,7 +199,7 @@ python3 {skill_dir}/scripts/humanness_score.py {article_path} --json --tier3 {ag
      - 内容增强策略（角度发现/密度强化/细节锚定/真实体感）
      - 范文风格库是否命中（用了哪几篇 exemplar，还是 fallback 到种子）
      - playbook 中生效的规则条数
-  2. 如果 history.yaml 无记录或用户指定了外部文章 → 跳过此部分，提示"这篇文章不是 WeWrite 生成的，只做质量检查"
+  2. 如果 history.yaml 无记录或用户指定了外部文章 → 跳过此部分，提示"这篇文章不是 NCoda 生成的，只做质量检查"
 
   **第二部分：质量检查**（告诉用户哪里还能改）
   1. `python3 {skill_dir}/scripts/humanness_score.py {article_path} --json`

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WeWrite evals runner — minimal assertion interpreter for evals/evals.json.
+"""NCoda evals runner — minimal assertion interpreter for evals/evals.json.
 
 Usage:
     python3 evals/run_evals.py                 # run all evals
@@ -390,7 +390,7 @@ def load_evals():
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Run WeWrite evals assertions")
+    ap = argparse.ArgumentParser(description="Run NCoda evals assertions")
     ap.add_argument("--eval", type=int, action="append", help="eval id filter (repeatable)")
     ap.add_argument("--slug", help="pin slug for {slug} targets")
     ap.add_argument("--json", action="store_true", help="machine-readable report")

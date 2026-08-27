@@ -1,5 +1,5 @@
 """
-Theme system for WeWrite.
+Theme system for NCoda.
 
 Loads YAML theme definitions and provides CSS parsing utilities
 for the inline style converter.

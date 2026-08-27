@@ -1,10 +1,10 @@
 {
-  "skill_name": "wewrite",
+  "skill_name": "ncoda",
   "evals": [
     {
       "id": 0,
       "name": "first-time-onboard",
-      "prompt": "我想用 WeWrite 写公众号文章。我的公众号叫「AI前沿站」，主要写 AI 和科技方向，风格偏轻松有趣，像跟朋友聊天。不用配微信 API，先不配，直接用默认的就行。",
+      "prompt": "我想用 NCoda 写公众号文章。我的公众号叫「AI前沿站」，主要写 AI 和科技方向，风格偏轻松有趣，像跟朋友聊天。不用配微信 API，先不配，直接用默认的就行。",
       "expected_output": "完成 Onboard 流程：通过对话收集信息生成 style.yaml，检测到缺 config.yaml 时设置降级标记而非报错停止",
       "assertions": [
         {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Diagnose which anti-AI measures are active in this WeWrite installation.
+Diagnose which anti-AI measures are active in this NCoda installation.
 
 Checks: Python deps, config.yaml, style.yaml, enhancement files, dimension variance.
 Outputs a human-readable report or structured JSON.
@@ -20,7 +20,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import ensure_skill_root, find_config_path, has_image_config, load_config, load_history, _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import ensure_skill_root, find_config_path, has_image_config, load_config, load_history, _ensure_utf8_stdio  # noqa: E402
 
 
 SKILL_ROOT = ensure_skill_root()
@@ -298,7 +298,7 @@ def file_status_map(checks):
 
 def format_text(checks, summary, recs):
     """Format human-readable text report."""
-    lines = ["WeWrite Anti-AI Diagnostic", "=" * 26, ""]
+    lines = ["NCoda Anti-AI Diagnostic", "=" * 26, ""]
 
     current_group = None
     group_labels = {
@@ -365,7 +365,7 @@ def run_all_checks():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Diagnose which anti-AI measures are active in this WeWrite installation.",
+        description="Diagnose which anti-AI measures are active in this NCoda installation.",
     )
     parser.add_argument("--json", action="store_true", help="Output structured JSON")
     args = parser.parse_args()

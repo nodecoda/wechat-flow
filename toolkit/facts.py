@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FactSheet（事实溯源）工具 for WeWrite（Phase D）。
+FactSheet（事实溯源）工具 for NCoda（Phase D）。
 
 写作的底线是"不编造"。FactSheet 把 Step 3.2 采集到的真实素材登记成一张
 可核实、可流转的溯源表（output/<slug>-facts.yaml），并在 Step 4.5 自检时
@@ -33,7 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import (  # noqa: E402
+from ncoda_common import (  # noqa: E402
     _ensure_utf8_stdio,
     load_output_entity,
     output_entity_path,

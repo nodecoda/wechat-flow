@@ -1,4 +1,4 @@
-"""learn_theme.py — extract a WeWrite-compatible theme from a WeChat article URL.
+"""learn_theme.py — extract a NCoda-compatible theme from a WeChat article URL.
 
 Usage:
     python3 scripts/learn_theme.py <url>          # fetch + analyse live article
@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import _ensure_utf8_stdio  # noqa: E402
 
 _ensure_utf8_stdio()
 
@@ -168,7 +168,7 @@ def _attach_title(soup, content) -> None:
     title_tag = soup.find("h1", class_="rich_media_title") or soup.find(
         "h1", id="activity-name"
     )
-    content._wewrite_title = title_tag.get_text(strip=True) if title_tag else ""
+    content._ncoda_title = title_tag.get_text(strip=True) if title_tag else ""
 
 
 def fetch_article(url: str, timeout: int = 20) -> "BeautifulSoup tag":
@@ -177,7 +177,7 @@ def fetch_article(url: str, timeout: int = 20) -> "BeautifulSoup tag":
     Delegates to fetch_article.fetch_html() for three-level fetching
     (requests → Playwright → manual fallback).
 
-    The article title is attached as ``content._wewrite_title`` (empty string
+    The article title is attached as ``content._ncoda_title`` (empty string
     if not found).
     """
     from scripts.fetch_article import fetch_html
@@ -603,7 +603,7 @@ def main():
     # Fetch
     print("Fetching article...")
     content = fetch_article(args.url)
-    title = getattr(content, "_wewrite_title", "")
+    title = getattr(content, "_ncoda_title", "")
     if title:
         print(f"Title: {title}")
 

@@ -26,7 +26,7 @@ def entity_stem(markdown_path) -> str:
 def ensure_skill_root() -> Path:
     """Return the skill root and guarantee it is importable.
 
-    wewrite_common.py always sits at the skill root: the repo root in the
+    ncoda_common.py always sits at the skill root: the repo root in the
     source layout (scripts/, toolkit/) and ``dist/openclaw/`` in the built
     layout. Scripts call this as the single source of truth for the root and
     for the sys.path bootstrap instead of repeating per-file boilerplate.
@@ -49,7 +49,7 @@ def config_search_paths(skill_root: Path | str | None = None) -> list[Path]:
         Path.cwd() / "config.yaml",
         root / "config.yaml",
         root / "toolkit" / "config.yaml",
-        Path.home() / ".config" / "wewrite" / "config.yaml",
+        Path.home() / ".config" / "ncoda" / "config.yaml",
     ]
 
 

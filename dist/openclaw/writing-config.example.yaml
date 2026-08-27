@@ -1,4 +1,4 @@
-# WeWrite 写作参数（可优化）
+# NCoda 写作参数（可优化）
 # 复制为 writing-config.yaml，在对话中说"优化参数"让 Agent 迭代调优
 # 或手动调整后用 humanness_score.py 评估
 #

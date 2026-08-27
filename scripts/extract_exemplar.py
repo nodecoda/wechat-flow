@@ -26,7 +26,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).parent))
 import humanness_score as hs
 
-from wewrite_common import ensure_skill_root, _ensure_utf8_stdio
+from ncoda_common import ensure_skill_root, _ensure_utf8_stdio
 
 SKILL_DIR = ensure_skill_root()
 _ensure_utf8_stdio()

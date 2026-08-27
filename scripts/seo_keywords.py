@@ -25,7 +25,7 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import _ensure_utf8_stdio  # noqa: E402
 
 _ensure_utf8_stdio()
 

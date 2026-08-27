@@ -409,7 +409,7 @@ background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
 
 ---
 
-## 8. WeWrite 自动修复
+## 8. NCoda 自动修复
 
 以下微信平台限制已由 converter 自动处理，**无需手动干预**：
 

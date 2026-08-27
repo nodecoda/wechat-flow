@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Humanness scoring for WeWrite articles.
+Humanness scoring for NCoda articles.
 
 Three-tier evaluation aligned with writing-guide.md's anti-AI checklist:
 
@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import _ensure_utf8_stdio  # noqa: E402
 
 _ensure_utf8_stdio()
 

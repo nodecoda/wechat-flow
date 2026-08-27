@@ -1,6 +1,6 @@
 # 学习人工修改（核心飞轮）
 
-这是 WeWrite 最重要的长期价值。每次用户编辑文章后让系统学习，下一���的初稿就会更接近用户的风��，需要的编辑量越来越少。
+这是 NCoda 最重要的长期价值。每次用户编辑文章后让系统学习，下一���的初稿就会更接近用户的风��，需要的编辑量越来越少。
 
 **飞轮效应**：初稿需要改 30% → 学习 5 次��只需改 15% → 学习 20 次后只需改 5%
 
@@ -46,7 +46,7 @@ python3 {skill_dir}/scripts/learn_edits.py --summarize --json
 playbook.md 是 YAML 格式，每条规则带 confidence 和元数据：
 
 ```yaml
-# WeWrite Playbook — 从用户���辑中学习的写作规则
+# NCoda Playbook — 从用户���辑中学习的写作规则
 # 由 Agent 自动���护，不要手动编辑
 # confidence ≥ 5 的规则在 Step 4 写作时作为硬性约束��行
 # confidence < 5 的规则作为软性参考

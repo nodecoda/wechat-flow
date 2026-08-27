@@ -12,7 +12,7 @@ on:
       - 'personas/**'
       - 'tests/**'
       - 'evals/**'
-      - 'wewrite_common.py'
+      - 'ncoda_common.py'
       - 'requirements.txt'
       - 'requirements-min.txt'
       - 'requirements-browser.txt'

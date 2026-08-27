@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Edit-anchor tooling for WeWrite (Phase A).
+Edit-anchor tooling for NCoda (Phase A).
 
 编辑锚点是写作后留给用户填入个人内容的标记位（人机协作节点）。
 结构化语法（Markdown 容器）：
@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import _ensure_utf8_stdio, entity_stem, save_output_entity  # noqa: E402
+from ncoda_common import _ensure_utf8_stdio, entity_stem, save_output_entity  # noqa: E402
 
 ANCHOR_TYPES = ("experience", "opinion", "story", "data")
 
@@ -143,7 +143,7 @@ def check_anchors(markdown_path: str, as_json: bool = False) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="anchor", description="WeWrite 编辑锚点工具")
+    parser = argparse.ArgumentParser(prog="anchor", description="NCoda 编辑锚点工具")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_gen = sub.add_parser("generate", help="在文章中插入编辑锚点（幂等）")

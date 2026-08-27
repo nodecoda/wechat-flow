@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import ensure_skill_root, _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import ensure_skill_root, _ensure_utf8_stdio  # noqa: E402
 
 REPO_ROOT = ensure_skill_root()
 _ensure_utf8_stdio()
@@ -31,7 +31,7 @@ COPY_FILES = [
     "config.example.yaml",
     "style.example.yaml",
     "writing-config.example.yaml",
-    "wewrite_common.py",
+    "ncoda_common.py",
     "VERSION",
 ]
 
@@ -74,8 +74,8 @@ def transform_body(body: str) -> str:
 
     # 3. Path convention note
     body = body.replace(
-        "本文档中 `{baseDir}` 指本 SKILL.md 所在的目录（即 WeWrite 的根目录）",
-        "本文档中 `{baseDir}` 指本 SKILL.md 所在的目录（即 WeWrite 的根目录）",
+        "本文档中 `{baseDir}` 指本 SKILL.md 所在的目录（即 NCoda 的根目录）",
+        "本文档中 `{baseDir}` 指本 SKILL.md 所在的目录（即 NCoda 的根目录）",
     )
 
     return body
@@ -130,7 +130,7 @@ def build(output_dir: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Build OpenClaw-compatible WeWrite skill")
+    parser = argparse.ArgumentParser(description="Build OpenClaw-compatible NCoda skill")
     parser.add_argument(
         "-o", "--output",
         default=str(REPO_ROOT / "dist" / "openclaw"),

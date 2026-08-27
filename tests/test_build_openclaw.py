@@ -18,7 +18,7 @@ def check(name, cond, detail=""):
 
 # ---- transform_frontmatter ----
 fm = """---
-name: wewrite
+name: ncoda
 description: 测试
 allowed-tools:
   - Bash
@@ -28,7 +28,7 @@ allowed-tools:
 """
 out = bo.transform_frontmatter(fm)
 check("allowed-tools 键被剥离", "allowed-tools" not in out)
-check("name 保留", "name: wewrite" in out)
+check("name 保留", "name: ncoda" in out)
 check("description 保留", "description: 测试" in out)
 check("列表项被剥离", "- Bash" not in out)
 
@@ -57,15 +57,15 @@ try:
     out_dir = Path(tmp) / "openclaw"
     bo.build(out_dir)
     check("build 生成 SKILL.md", (out_dir / "SKILL.md").exists())
-    check("build 生成 wewrite_common.py", (out_dir / "wewrite_common.py").exists())
+    check("build 生成 ncoda_common.py", (out_dir / "ncoda_common.py").exists())
     check("build 生成 toolkit/facts.py", (out_dir / "toolkit" / "facts.py").exists())
     check("build 生成 scripts/humanness_score.py", (out_dir / "scripts" / "humanness_score.py").exists())
     sk = (out_dir / "SKILL.md").read_text(encoding="utf-8")
     check("build 转换 allowed-tools 剥离", "allowed-tools" not in sk)
     check("build 转换 {baseDir}", "{baseDir}" in sk)
     check("build 复制 requirements-min", (out_dir / "requirements-min.txt").exists())
-    wc = (out_dir / "wewrite_common.py").read_text(encoding="utf-8")
-    check("build 复制新版 wewrite_common", "ensure_skill_root" in wc)
+    wc = (out_dir / "ncoda_common.py").read_text(encoding="utf-8")
+    check("build 复制新版 ncoda_common", "ensure_skill_root" in wc)
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 

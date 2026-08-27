@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AI image generation module for WeWrite.
+AI image generation module for NCoda.
 
 Supports multiple providers via a simple abstraction:
   - doubao-seedream (Volcengine Ark) — default, good for Chinese prompts
@@ -39,7 +39,7 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import load_config as _load_config
+from ncoda_common import load_config as _load_config
 
 # --- Config ---
 

@@ -1,6 +1,6 @@
-# wechat-flow
+# NCoda
 
-[![Build](https://github.com/nodecoda/wechat-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/nodecoda/wechat-flow/actions/workflows/ci.yml)
+[![Build](https://github.com/nodecoda/ncoda/actions/workflows/ci.yml/badge.svg)](https://github.com/nodecoda/ncoda/actions/workflows/ci.yml)
 
 面向公众号内容生产与自动发布的 Agent 工作流项目。
 
@@ -12,7 +12,7 @@
 
 ## 项目定位
 
-`wechat-flow` 可以理解为三层结构：
+`ncoda` 可以理解为三层结构：
 
 | 层级 | 作用 | 关键文件 |
 |------|------|---------|
@@ -20,7 +20,7 @@
 | 执行层 | 提供抓热点、SEO、排版、发布、生图、学习等确定性能力 | `toolkit/`、`scripts/` |
 | 知识层 | 决定写作标准、人格、主题与平台约束 | `references/`、`personas/`、`toolkit/themes/` |
 
-一句话说，`wechat-flow` 的本质是：**公众号内容生产工作流规范 + 本地工具链 + 外部平台 API 适配层。**
+一句话说，`ncoda` 的本质是：**公众号内容生产工作流规范 + 本地工具链 + 外部平台 API 适配层。**
 
 ## 它能做什么
 
@@ -73,7 +73,7 @@ writing_persona: "midnight-friend"
 
 ## 写作域回路（Phase A-E）
 
-写作不只是「生成一段文字」——WeWrite 把写作过程建模为可核验、可回放、可调优的四段回路，每个环节都有工具与产物落盘在 `output/{slug}-*.yaml`：
+写作不只是「生成一段文字」——NCoda 把写作过程建模为可核验、可回放、可调优的四段回路，每个环节都有工具与产物落盘在 `output/{slug}-*.yaml`：
 
 | 环节 | 产物 | 工具 | 作用 |
 |------|------|------|------|
@@ -90,7 +90,7 @@ writing_persona: "midnight-friend"
 
 ## 内容质量
 
-wechat-flow 的目标不是"骗过 AI 检测"，而是**写出值得读的文章**。核心机制：
+ncoda 的目标不是"骗过 AI 检测"，而是**写出值得读的文章**。核心机制：
 
 1. **内容增强**：根据框架类型自动执行不同策略——热点文找反直觉角度、干货文强化信息密度、故事文锚定真实细节、对比文注入真实用户体感
 2. **素材采集**：自动 WebSearch 真实数据/引述/案例，锚定在文章中（不编造）
@@ -159,15 +159,15 @@ python3 toolkit/cli.py themes
 ### Claude Code
 
 ```bash
-git clone --depth 1 https://github.com/nodecoda/wechat-flow.git ~/.claude/skills/wechat-flow
-cd ~/.claude/skills/wechat-flow && pip install -r requirements.txt
+git clone --depth 1 https://github.com/nodecoda/ncoda.git ~/.claude/skills/ncoda
+cd ~/.claude/skills/ncoda && pip install -r requirements.txt
 ```
 
 ### OpenClaw
 
 ```bash
-git clone --depth 1 https://github.com/nodecoda/wechat-flow.git ~/.openclaw/skills/wechat-flow
-cd ~/.openclaw/skills/wechat-flow && pip install -r requirements.txt
+git clone --depth 1 https://github.com/nodecoda/ncoda.git ~/.openclaw/skills/ncoda
+cd ~/.openclaw/skills/ncoda && pip install -r requirements.txt
 ```
 
 安装后 skill 会在每次运行时自动检查新版本。有更新时说“更新”即可更新。
@@ -216,12 +216,12 @@ cp config.example.yaml config.yaml
 ## 目录结构
 
 ```
-wechat-flow/
+ncoda/
 ├── SKILL.md                     # 主管道（Step 1-8）
 ├── config.example.yaml          # API 配置模板
 ├── style.example.yaml           # 风格配置模板
 ├── writing-config.example.yaml  # 写作参数模板
-├── wewrite_common.py            # 共享模块（config/history/写作域实体/UTF-8）
+├── ncoda_common.py            # 共享模块（config/history/写作域实体/UTF-8）
 ├── VERSION                      # 版本号（Step 1.2 更新检查用）
 ├── requirements.txt             # 完整写作管线（排版/生图/发布）
 ├── requirements-min.txt         # 最小核心（pyyaml + requests）

@@ -22,7 +22,7 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import ensure_skill_root, load_config, load_history, save_history, _ensure_utf8_stdio  # noqa: E402
+from ncoda_common import ensure_skill_root, load_config, load_history, save_history, _ensure_utf8_stdio  # noqa: E402
 
 
 SKILL_DIR = ensure_skill_root()

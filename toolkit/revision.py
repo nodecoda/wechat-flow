@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Four-layer revision tooling for WeWrite (Phase B).
+Four-layer revision tooling for NCoda (Phase B).
 
 初稿是把话说出来，修改是把话说好。修改必须从大到小：
     结构层 → 段落层 → 句子层 → 措辞层
@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from wewrite_common import (  # noqa: E402
+from ncoda_common import (  # noqa: E402
     _ensure_utf8_stdio,
     ensure_skill_root,
     entity_stem,
@@ -606,7 +606,7 @@ def rollback(markdown_path: str) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="revision", description="WeWrite 四层修改工具")
+    parser = argparse.ArgumentParser(prog="revision", description="NCoda 四层修改工具")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_a = sub.add_parser("analyze", help="四层静态检查 → RevisionReport")
