@@ -53,10 +53,113 @@ def config_search_paths(skill_root: Path | str | None = None) -> list[Path]:
     ]
 
 
+
 def find_config_path(skill_root: Path | str | None = None) -> Path | None:
     for path in config_search_paths(skill_root):
         if path.exists():
             return path
+    return None
+
+
+def style_search_paths(skill_root: Path | str | None = None) -> list[Path]:
+    """style.yaml search paths, local (cwd) first — mirrors config layering."""
+    root = _skill_root_from(skill_root)
+    return [
+        Path.cwd() / "style.yaml",
+        root / "style.yaml",
+        Path.home() / ".config" / "ncoda" / "style.yaml",
+    ]
+
+
+def find_style_path(skill_root: Path | str | None = None) -> Path | None:
+    """Highest-priority existing style.yaml (local wins)."""
+    for path in style_search_paths(skill_root):
+        if path.exists():
+            return path
+    return None
+
+
+def load_style(skill_root: Path | str | None = None) -> dict:
+    """Load style.yaml with the same local-first merge semantics as config."""
+    merged: dict = {}
+    for path in reversed(style_search_paths(skill_root)):
+        raw = load_yaml_file(path, None)
+        if isinstance(raw, dict):
+            merged = deep_merge(merged, raw)
+    return merged
+
+
+# --- WeChat multi-account helpers ---
+
+def list_wechat_accounts(config: dict) -> list[dict]:
+    """Normalize ``wechat.accounts`` into a list of dicts with a ``name`` key.
+
+    Accounts missing a name get a generated ``account-N`` label.
+    """
+    wechat = config.get("wechat", {})
+    if not isinstance(wechat, dict):
+        return []
+    accounts = wechat.get("accounts", [])
+    if not isinstance(accounts, list):
+        return []
+    out: list[dict] = []
+    for idx, acc in enumerate(accounts, start=1):
+        if not isinstance(acc, dict):
+            continue
+        item = dict(acc)
+        if not (item.get("appid") or item.get("name")):
+            continue
+        item.setdefault("name", f"account-{idx}")
+        out.append(item)
+    return out
+
+
+def wechat_account_names(config: dict) -> list[str]:
+    """Configured account names in order."""
+    return [acc.get("name", "") for acc in list_wechat_accounts(config) if acc.get("name")]
+
+
+def get_wechat_account(config: dict, name: str | None = None) -> dict | None:
+    """Resolve a WeChat account by name; ``None`` resolves the default.
+
+    Resolution order for ``name=None``:
+      1. ``wechat.default`` account (must be complete)
+      2. first complete account in ``wechat.accounts``
+      3. legacy ``wechat.appid``/``wechat.secret`` block (named "default")
+
+    A named lookup never silently falls back: unknown/incomplete name → None.
+    Returns a dict with at least ``name``/``appid``/``secret``, or None.
+    """
+    accounts = list_wechat_accounts(config)
+    wechat = config.get("wechat", {})
+    if not isinstance(wechat, dict):
+        wechat = {}
+
+    if name:
+        for acc in accounts:
+            if acc.get("name") == name:
+                if acc.get("appid") and acc.get("secret"):
+                    return acc
+                return None  # named but incomplete → no silent fallback
+        return None  # unknown name
+
+    default_name = wechat.get("default")
+    if default_name:
+        for acc in accounts:
+            if acc.get("name") == default_name:
+                if acc.get("appid") and acc.get("secret"):
+                    return acc
+                return None  # default points to an incomplete account → surface it
+    for acc in accounts:
+        if acc.get("appid") and acc.get("secret"):
+            return acc
+    if wechat.get("appid") and wechat.get("secret"):
+        return {
+            "name": "default",
+            "appid": wechat["appid"],
+            "secret": wechat["secret"],
+            "author": wechat.get("author", ""),
+        }
     return None
 
 
@@ -67,11 +170,37 @@ def load_yaml_file(path: Path, default):
         return yaml.safe_load(f) or default
 
 
+def deep_merge(base: dict, overlay: dict) -> dict:
+    """Recursively merge overlay into base, returning a new dict.
+
+    Nested dicts merge key-by-key; lists and scalars from overlay replace base.
+    Used for config layering: low-priority (global) first, local overrides win.
+    """
+    out = dict(base)
+    for key, value in overlay.items():
+        if key in out and isinstance(out[key], dict) and isinstance(value, dict):
+            out[key] = deep_merge(out[key], value)
+        else:
+            out[key] = copy.deepcopy(value)
+    return out
+
+
 def load_config(skill_root: Path | str | None = None) -> dict:
-    path = find_config_path(skill_root)
-    if path is not None:
-        return load_yaml_file(path, {})
-    return {}
+    """Load config with local-first layering.
+
+    Search order (highest priority last in the merge loop, so it wins):
+      ~/.config/ncoda/config.yaml  →  {skill_root}/toolkit/config.yaml
+      → {skill_root}/config.yaml  →  {cwd}/config.yaml
+
+    Multiple files are deep-merged, so a project-local ``config.yaml`` may
+    contain only the sections it wants to override (e.g. ``wechat:``).
+    """
+    merged: dict = {}
+    for path in reversed(config_search_paths(skill_root)):
+        raw = load_yaml_file(path, None)
+        if isinstance(raw, dict):
+            merged = deep_merge(merged, raw)
+    return merged
 
 
 def history_path(skill_root: Path | str | None = None) -> Path:
