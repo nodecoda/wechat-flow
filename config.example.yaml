@@ -2,10 +2,37 @@
 # 复制为 config.yaml 并填入你的信息
 
 # 微信公众号 API（发布草稿 + 数据统计必需）
+# 支持两种配置方式：
+#
+# 方式一：单账号（简单用法，填一个就能用）
 wechat:
   appid: "wx_your_appid"
   secret: "your_appsecret"
   author: ""  # 默认署名（可选）
+
+# 方式二：多账号（推荐，发布时可指定目标公众号）
+# wechat:
+#   default: "main"            # 不指定 --account 时的默认账号（默认取 accounts 首项）
+#   accounts:
+#     - name: "main"           # --account <name> 的取值
+#       appid: "wx_main_appid"
+#       secret: "your_main_secret"
+#       author: "主号"          # 可选，默认署名
+#     - name: "sub"
+#       appid: "wx_sub_appid"
+#       secret: "your_sub_secret"
+#       author: "副号"
+#
+# 用法：
+#   python3 toolkit/cli.py publish article.md --account sub     # 指定账号
+#   python3 toolkit/cli.py publish article.md                   # 默认账号
+#   python3 toolkit/cli.py accounts                             # 查看已配置账号
+#   python3 scripts/fetch_stats.py --account main               # 数据回填指定账号
+#   python3 scripts/learn_edits.py --from-wechat --account main # 草稿箱学习指定账号
+#
+# 本地覆盖：在项目根目录放 config.yaml 即可实现"本地优先"——多处配置会合并，
+# 本地文件的字段覆盖全局（skill 目录 / ~/.config/ncoda）的同名字段。
+# 只想覆盖部分内容时，本地文件里只写要覆盖的段落即可。
 
 # AI 图片生成
 # 支持 9 个 provider，配一个就能用，配多个自动 fallback。

@@ -190,10 +190,34 @@ pip install -r requirements-browser.txt
 ### 配置（可选）
 
 ```bash
-cp config.example.yaml config.yaml
+cp config.example.yaml config.yaml   # skill 目录（全局）或项目根目录（本地）均可
 ```
 
 填入微信公众号 `appid`/`secret`（推送需要）和图片 API key（生图需要）。也支持 `image.providers` 多供应商自动 fallback。不配也能用——自动降级为本地 HTML + 输出图片提示词。
+
+**本地优先**：配置支持「全局 + 本地」分层合并，搜索顺序为 `{cwd}/config.yaml` → `{skill_dir}/config.yaml` → `{skill_dir}/toolkit/config.yaml` → `~/.config/ncoda/config.yaml`。在项目根目录放 `config.yaml`（可只写要覆盖的段落）即可覆盖全局配置，不用改全局文件；`style.yaml` 同样支持（`{cwd}/style.yaml` 优先）。
+
+**多公众号**：`wechat.accounts` 列表支持配置多个公众号，发布/回填/学习时用 `--account <name>` 指定目标，不指定则用 `wechat.default` 或 `accounts` 首项（旧字段 `appid`/`secret` 仍兼容）：
+
+```yaml
+wechat:
+  default: "main"
+  accounts:
+    - name: "main"
+      appid: "wx_main_appid"
+      secret: "your_main_secret"
+      author: "主号"
+    - name: "sub"
+      appid: "wx_sub_appid"
+      secret: "your_sub_secret"
+```
+
+```bash
+python3 toolkit/cli.py accounts                                # 查看已配置账号
+python3 toolkit/cli.py publish article.md --account sub        # 发布到 sub 公众号
+python3 scripts/fetch_stats.py --account main                  # 数据回填指定账号
+python3 scripts/learn_edits.py --from-wechat --account main    # 草稿箱学习指定账号
+```
 
 ## 快速开始
 
