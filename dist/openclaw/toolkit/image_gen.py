@@ -120,6 +120,14 @@ def _download_image(url: str) -> bytes:
     return resp.content
 
 
+def _decode_image(raw: str) -> bytes:
+    """Decode image from base64 payload (b64_json field or data: URI)."""
+    import base64
+    if str(raw).startswith("data:"):
+        raw = str(raw).split(",", 1)[1]
+    return base64.b64decode(raw)
+
+
 # --- Provider abstraction ---
 
 class ImageProvider(abc.ABC):
@@ -172,7 +180,12 @@ class DoubaoProvider(ImageProvider):
                              f"{data.get('error', {}).get('message', str(data))}")
         url = data.get("data", [{}])[0].get("url")
         if not url:
+            b64 = data.get("data", [{}])[0].get("b64_json")
+            if b64:
+                return _decode_image(b64)
             raise ValueError(f"No image URL: {data}")
+        if str(url).startswith("data:"):
+            return _decode_image(url)
         return _download_image(url)
 
 
@@ -202,7 +215,12 @@ class OpenAIProvider(ImageProvider):
                              f"{data.get('error', {}).get('message', str(data))}")
         url = data.get("data", [{}])[0].get("url")
         if not url:
+            b64 = data.get("data", [{}])[0].get("b64_json")
+            if b64:
+                return _decode_image(b64)
             raise ValueError(f"No image URL: {data}")
+        if str(url).startswith("data:"):
+            return _decode_image(url)
         return _download_image(url)
 
 

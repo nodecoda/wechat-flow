@@ -52,6 +52,10 @@ image:
 #     - provider: openai
 #       api_key: "sk-..."
 #       # model: "dall-e-3"
+#     - provider: openai                     # gpt-image-* 兼容代理示例（如 cn.pptoken.cc）
+#       model: "gpt-image-2"
+#       base_url: "https://cn.pptoken.cc/v1"
+#       api_key: "sk-your_proxy_key"
 #     - provider: azure_openai
 #       api_key: "your_azure_key"
 #       base_url: "https://YOUR-RESOURCE.openai.azure.com/openai"  # 必填
