@@ -64,8 +64,24 @@ python3 -c "import markdown, bs4, cssutils, requests, yaml, pygments, PIL" 2>&1
 
 | 检查项 | 不通过时 |
 |--------|---------|
-| `config.yaml` / Python 依赖 / `wechat.appid`+`secret` / `image.api_key` 或 `image.providers` | 引导创建或 `pip install -r requirements.txt`；微信缺 → `skip_publish=true`；图缺 → `skip_image_gen=true` |
+| `config.yaml` / Python 依赖 / `wechat` 账号（`appid`+`secret` 或 `accounts` 任一完整）/ `image.api_key` 或 `image.providers` | 引导创建或 `pip install -r requirements.txt`；微信缺 → `skip_publish=true`；图缺 → `skip_image_gen=true` |
 | `references/exemplars/index.yaml` | 提示「范文库为空。有已发布 markdown 可说『导入范文』建风格库；没有也不影响使用」 |
+
+**1.1b 配置说明**（config.yaml / style.yaml 搜索与覆盖）：
+
+```
+搜索顺序（高优先在前）：
+  {cwd}/config.yaml               ← 项目本地配置（推荐，修改方便）
+  {baseDir}/config.yaml         ← skill 全局配置
+  {baseDir}/toolkit/config.yaml
+  ~/.config/ncoda/config.yaml     ← 用户全局配置
+```
+
+- **本地优先**：多处配置**合并**加载，本地文件的字段覆盖全局同名字段。在项目根目录放一个只写差异段的 `config.yaml` 即可实现「本地覆盖全局」，无需改全局文件。`style.yaml` 同规则（`{cwd}/style.yaml` 优先）。
+- **多公众号**：`wechat.accounts` 列表（`name`/`appid`/`secret`/`author`）+ `wechat.default` 指定默认；旧字段 `wechat.appid`/`secret` 仍兼容（视为默认账号）。
+  - 发布：`cli.py publish ... --account <name>`；不指定 → 默认账号。`cli.py accounts` 可查看已配置账号。
+  - 数据回填：`fetch_stats.py --account <name>`；草稿箱学习：`learn_edits.py --from-wechat --account <name>`。
+- 交互模式在发布前询问「推送到哪个公众号？」（列出 accounts name，缺省默认）。
 
 **1.2 版本检查**（静默通过或提醒）：
 
@@ -293,8 +309,11 @@ python3 {baseDir}/toolkit/revision.py recheck {article_path}
 Converter 自动处理：CJK 加空格、加粗标点外移、列表转 section、外链转脚注、暗黑模式、容器语法。
 
 ```bash
-# 发布
-python3 {baseDir}/toolkit/cli.py publish {markdown} --cover {cover} --theme {theme} --title "{title}" --digest "{digest}"
+# 发布（--account 指定目标公众号；不指定 → wechat.default / accounts 首项 / 旧字段）
+python3 {baseDir}/toolkit/cli.py publish {markdown} --cover {cover} --theme {theme} --title "{title}" --digest "{digest}" --account {target_account}
+
+# 查看已配置账号（--account 可选值）
+python3 {baseDir}/toolkit/cli.py accounts
 
 # 降级：本地预览
 python3 {baseDir}/toolkit/cli.py preview {markdown} --theme {theme} --no-open -o {output}.html

@@ -23,21 +23,27 @@ SECRET_DEFAULT = ""
 API_BASE = "https://api.weixin.qq.com"
 
 
-def load_credentials(appid: str, secret: str) -> tuple[str, str]:
-    """Prefer CLI args; fall back to config.yaml wechat section."""
+def load_credentials(appid: str, secret: str, account_name: str = "") -> tuple[str, str]:
+    """Prefer CLI args; fall back to config.yaml wechat section (multi-account aware).
+
+    Account resolution mirrors ncoda_common.get_wechat_account: --account <name>
+    → wechat.accounts；缺省用默认账号（default/accounts 首项/旧字段）。
+    """
     if appid and secret:
         return appid, secret
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     try:
-        import yaml
+        from ncoda_common import get_wechat_account, load_config
     except ImportError:
-        print("PyYAML not installed; pass --appid/--secret explicitly", file=sys.stderr)
+        print("ncoda_common 不可用（缺少 PyYAML?）；请用 --appid/--secret 显式传参", file=sys.stderr)
         return "", ""
-    import os
-    cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.yaml")
-    with open(cfg_path, encoding="utf-8") as f:
-        cfg = yaml.safe_load(f) or {}
-    w = (cfg.get("wechat") or {})
-    return appid or w.get("appid", ""), secret or w.get("secret", "")
+    cfg = load_config()
+    acc = get_wechat_account(cfg, account_name or None)
+    if acc is None:
+        return "", ""
+    return acc["appid"], acc["secret"]
 
 
 def get_token(appid: str, secret: str) -> str:
@@ -65,12 +71,13 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--appid", default="")
     ap.add_argument("--secret", default="")
+    ap.add_argument("--account", default="", help="目标公众号名（config.yaml wechat.accounts 中的 name）")
     ap.add_argument("--no-draft", action="store_true", help="skip step 3 (draft/add probe)")
     args = ap.parse_args()
 
-    appid, secret = load_credentials(args.appid, args.secret)
+    appid, secret = load_credentials(args.appid, args.secret, args.account)
     if not appid or not secret:
-        print("缺少 appid/secret：请用 --appid/--secret 或填写 config.yaml 的 wechat 段")
+        print("缺少 appid/secret：请用 --appid/--secret 或填写 config.yaml 的 wechat 段（--account 可指定账号）")
         return 2
 
     print("== Step 1: access_token ==")
