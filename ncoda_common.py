@@ -94,7 +94,12 @@ def load_history(skill_root: Path | str | None = None) -> list[dict]:
     path = history_path(skill_root)
     if not path.exists():
         return []
-    return normalize_history(load_yaml_file(path, []))
+    try:
+        raw = load_yaml_file(path, [])
+    except yaml.YAMLError:
+        # 历史数据文件损坏（如旧版写入缺陷）时降级为空，不阻断诊断/去重流程
+        return []
+    return normalize_history(raw)
 
 
 def save_history(articles: list[dict], skill_root: Path | str | None = None) -> Path:
